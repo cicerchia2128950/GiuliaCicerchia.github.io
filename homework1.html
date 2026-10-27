@@ -1,59 +1,233 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Homework 1</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homework 1 - Toy ECC</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 40px;
+    :root{
+      --bg:#f4f6fb;
+      --panel:#ffffff;
+      --ink:#1d2433;
+      --muted:#59657a;
+      --border:#dfe5f4;
+      --blue:#1f7ae0;
+      --green:#2ca36b;
+      --red:#d14d4d;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height:1.6;
     }
-    h1 {
-      margin-top: 0;
+
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:40px 24px 80px;
     }
-    a {
-      color: #0d6efd;
-      text-decoration: none;
+
+    .paper{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: 0 10px 25px rgba(17,24,39,0.04);
+      padding:30px 30px 40px;
     }
-    a:hover {
-      text-decoration: underline;
+
+    h1{
+      margin-top:0;
+      font-size:2.3rem;
+      letter-spacing:-0.04em;
     }
-    .btn {
-      display: inline-block;
-      margin-top: 20px;
-      background: #0d6efd;
-      color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
+
+    h2{
+      margin-top:28px;
+      font-size:1.3rem;
+      color:var(--ink);
+    }
+
+    p, li{
+      color:var(--muted);
+      font-size:1.04rem;
+    }
+
+    .box{
+      background:#f7f9ff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px 18px;
+      margin:14px 0 22px;
+    }
+
+    .result{
+      font-weight:700;
+      color:var(--blue);
+      font-size:1.08rem;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:16px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    th, td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      font-size:0.98rem;
+    }
+
+    th{
+      background:#f4f7ff;
+    }
+
+    .back{
+      display:inline-block;
+      margin-top:22px;
+      text-decoration:none;
+      background:var(--blue);
+      color:#fff;
+      padding:10px 16px;
+      border-radius:10px;
+      font-weight:700;
+    }
+
+    .back:hover{
+      background:#1769c9;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Homework 1</h1>
-    <p>Qui puoi inserire il titolo del compito, il riassunto, le immagini, i risultati o il PDF.</p>
+    <div class="paper">
 
-    <h2>Obiettivo</h2>
-    <p>Descrivi l’argomento del compito.</p>
+      <h1>HMWK 1.1 — Example App: Public-Key Cryptography</h1>
 
-    <h2>Soluzione</h2>
-    <p>Scrivi i passaggi principali della tua soluzione.</p>
+      <p>
+        In Ethereum, the relevant elliptic curve is <strong>secp256k1</strong>. For this toy exercise,
+        we use a small curve to understand the basic mechanism behind elliptic-curve scalar multiplication.
+      </p>
 
-    <h2>File allegati</h2>
-    <p>Puoi inserire link a PDF o immagini.</p>
+      <div class="box">
+        <strong>Curve:</strong> y² = x³ + 7 (mod 17)<br>
+        <strong>Base point:</strong> G = (1, 5)<br>
+        <strong>Private key:</strong> k = 6
+      </div>
 
-    <a class="btn" href="index.html">Torna alla home</a>
+      <p>
+        The goal is to show the core idea: from a private scalar <em>k</em> we compute a public key
+        <strong>Q = kG</strong>. This operation is easy to compute in one direction but very difficult
+        to invert in practice. This is the foundation behind public-key cryptography.
+      </p>
+
+      <h2>1) The toy curve</h2>
+      <p>
+        We are working modulo 17, so all operations are computed in the finite field <strong>F₁₇</strong>.
+        The equation is:
+      </p>
+
+      <div class="box">
+        y² = x³ + 7 (mod 17)
+      </div>
+
+      <p>
+        The valid points on the curve are:
+      </p>
+
+      <div class="box">
+        O, (1,5), (1,12), (2,7), (2,10), (3,0), (5,8), (5,9), (6,6), (6,11), (8,3), (8,14), (10,2), (10,15), (12,1), (12,16), (15,4), (15,13)
+      </div>
+
+      <h2>2) Point addition</h2>
+      <p>
+        The key operation is point addition. For two points P and Q, the slope λ is defined as:
+      </p>
+
+      <div class="box">
+        If P ≠ Q: λ = (y₂ - y₁) / (x₂ - x₁) mod 17<br>
+        If P = Q: λ = (3x₁² + a) / (2y₁) mod 17
+      </div>
+
+      <p>
+        For this toy curve, a = 0. Then:
+      </p>
+
+      <div class="box">
+        x₃ = λ² - x₁ - x₂ (mod 17)<br>
+        y₃ = λ(x₁ - x₃) - y₁ (mod 17)
+      </div>
+
+      <h2>3) Computing the multiples of G</h2>
+      <p>
+        We start from the base point G = (1,5) and compute:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Multiplication</th>
+            <th>Point</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>G</td><td>(1, 5)</td></tr>
+          <tr><td>2G</td><td>(2, 10)</td></tr>
+          <tr><td>3G</td><td>(5, 9)</td></tr>
+          <tr><td>4G</td><td>(12, 1)</td></tr>
+          <tr><td>5G</td><td>(12, 16)</td></tr>
+          <tr><td>6G</td><td>(5, 8)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>4) Final result</h2>
+      <p class="result">
+        Q = 6G = (5, 8)
+      </p>
+
+      <p>
+        This is the toy public key. In a real cryptographic system, the private key is much larger
+        (for Ethereum, 256-bit), and the public key is derived in the same way, just with much larger
+        values and a more complex mathematical setting.
+      </p>
+
+      <h2>5) Interpretation</h2>
+      <p>
+        The important idea is this: the private key is a scalar <em>k</em>, and the public key is
+        the point obtained by repeated elliptic-curve addition. The operation is deterministic,
+        easy to compute in one direction, and very hard to reverse.
+      </p>
+
+      <p>
+        In Ethereum, the actual curve is <strong>secp256k1</strong>, and the same principle is used
+        for generating wallet public keys and digital signatures.
+      </p>
+
+      <h2>6) Statistical exploration</h2>
+      <p>
+        If we repeat this experiment with different values of k and different valid base points, we can
+        explore the distribution of the x and y coordinates, their frequency, and whether they appear
+        to behave "uniformly". In cryptography, these distributions are important because they tell us
+        whether the output of the function looks random and unpredictable.
+      </p>
+
+      <p>
+        However, elliptic-curve scalar multiplication is not a hash function. It is a public-key
+        operation based on a hard mathematical problem, the Elliptic Curve Discrete Logarithm Problem.
+        This is different from a cryptographic hash function, which maps arbitrary data to fixed-length
+        outputs and is designed for integrity and hashing, not for key pair generation.
+      </p>
+
+      <a class="back" href="index.html">Torna alla home</a>
+    </div>
   </div>
 </body>
 </html>
