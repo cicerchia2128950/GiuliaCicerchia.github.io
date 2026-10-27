@@ -1,436 +1,621 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Homework 1.1 - Public-Key Cryptography</title>
-  <style>
-    :root{
-      --bg:#f3f4f6;
-      --panel:#ffffff;
-      --ink:#1f2430;
-      --muted:#5f6875;
-      --border:#dfe5f1;
-      --blue:#1d7ae0;
-      --green:#2b9d69;
-      --red:#d75a5a;
-      --soft:#f6f9ff;
-    }
-
-    * { box-sizing: border-box; }
-
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--ink);
-      font-family: Arial, Helvetica, sans-serif;
-      line-height:1.7;
-    }
-
-    .container{
-      max-width:1100px;
-      margin:0 auto;
-      padding:40px 22px 80px;
-    }
-
-    .paper{
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:0 10px 24px rgba(15,23,42,0.04);
-      padding:36px 28px 42px;
-    }
-
-    h1{
-      margin:0 0 16px;
-      font-size:2.6rem;
-      letter-spacing:-0.04em;
-      line-height:1.1;
-    }
-
-    h2{
-      margin-top:30px;
-      font-size:1.3rem;
-      color:var(--ink);
-    }
-
-    p, li{
-      color:var(--muted);
-      font-size:1.04rem;
-    }
-
-    .meta{
-      color:var(--muted);
-      font-size:0.95rem;
-      margin-bottom:18px;
-    }
-
-    .box{
-      background:var(--soft);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:16px 18px;
-      margin:18px 0;
-    }
-
-    .result{
-      font-weight:700;
-      color:var(--blue);
-      font-size:1.08rem;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      border:1px solid var(--border);
-      margin-top:14px;
-      border-radius:12px;
-      overflow:hidden;
-    }
-
-    th, td{
-      padding:12px 14px;
-      border-bottom:1px solid var(--border);
-      text-align:left;
-      font-size:0.98rem;
-    }
-
-    th{
-      background:#f3f7ff;
-    }
-
-    canvas{
-      display:block;
-      width:100%;
-      max-width:760px;
-      height:440px;
-      border:1px solid var(--border);
-      border-radius:12px;
-      background:#ffffff;
-      margin:18px 0 24px;
-    }
-
-    .btn{
-      display:inline-block;
-      margin-top:18px;
-      background:var(--blue);
-      color:#fff;
-      text-decoration:none;
-      padding:10px 18px;
-      border-radius:10px;
-      font-weight:700;
-    }
-
-    .btn:hover{
-      background:#1668c6;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HMWK 1 — Toy ECC: chiave privata → chiave pubblica</title>
+<style>
+  :root{--bg:#0f1420;--panel:#171e2e;--ink:#e6eaf2;--mute:#8d98b0;--acc:#4da3ff;--ok:#43d19e;--warn:#ffb454;--bad:#ff6b6b;--vio:#b58cff;--line:#2a3550}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,"Segoe UI",Roboto,sans-serif}
+  header,main{max-width:1180px;margin:0 auto;padding:16px 20px}
+  h1{font-size:1.5rem;margin:.2em 0}
+  h2{font-size:1.15rem;margin:0 0 10px;color:var(--acc)}
+  h3{font-size:1rem;margin:14px 0 6px}
+  .sub{color:var(--mute);margin:0}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  label{display:flex;flex-direction:column;font-size:.8rem;color:var(--mute);gap:3px}
+  input,select{background:#0f1626;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 8px;font:inherit;width:90px}
+  select{width:auto}
+  input[type=range]{width:140px;padding:0}
+  button{background:var(--acc);color:#04101f;border:0;border-radius:6px;padding:7px 14px;font:inherit;font-weight:600;cursor:pointer}
+  button.sec{background:#26324d;color:var(--ink)}
+  button:hover{filter:brightness(1.12)}
+  .err{color:var(--bad);min-height:1.2em;margin-top:8px}
+  .two{display:grid;grid-template-columns:minmax(300px,580px) 1fr;gap:18px}
+  @media(max-width:900px){.two{grid-template-columns:1fr}}
+  canvas{width:100%;height:auto;background:#0c111d;border:1px solid var(--line);border-radius:8px;display:block}
+  .info{background:#0c111d;border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem}
+  .pub{font:700 1.5rem ui-monospace,Menlo,Consolas,monospace;color:var(--ok);margin:4px 0 8px}
+  .legend span{display:inline-block;margin-right:14px;font-size:.8rem;color:var(--mute)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  pre{background:#0c111d;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0;overflow:auto;font-size:.82rem;max-height:260px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+  .card{background:#0c111d;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .card h3{margin:2px 4px 6px;font-size:.88rem;color:var(--mute);font-weight:600}
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  td,th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+  th{color:var(--mute);font-weight:600}
+  .good{color:var(--ok)} .warnc{color:var(--warn)}
+  ul{margin:6px 0 6px 20px;padding:0} li{margin:3px 0}
+  code{background:#0c111d;padding:1px 5px;border-radius:4px}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="paper">
-      <h1>Homework 1.1</h1>
-      <div class="meta">Public-Key Cryptography and Elliptic-Curve Scalar Multiplication</div>
+<header>
+  <h1>HMWK 1 — Toy ECC: PRIVATE KEY → PUBLIC KEY</h1>
+  <p class="sub">Curva giocattolo <code>y² = x³ + 7 (mod p)</code> (stessa forma di secp256k1 usata da Ethereum, ma con p minuscolo). Chiave pubblica <code>Q = k·G</code>.</p>
+</header>
+<main>
 
-      <p>
-        Elliptic-curve cryptography is based on the idea that a private key <strong>k</strong> can be
-        transformed into a public key <strong>Q = kG</strong>, where <strong>G</strong> is a base point
-        on the curve. The operation is easy to compute in the forward direction, but recovering <strong>k</strong>
-        from <strong>Q</strong> is computationally difficult.
-      </p>
+<section>
+  <div class="controls">
+    <label>p (primo ≤ 20011)<input id="p" type="number" value="17"></label>
+    <label>G.x<input id="gx" type="number" value="1"></label>
+    <label>G.y<input id="gy" type="number" value="5"></label>
+    <label>k (chiave privata)<input id="k" type="number" value="6"></label>
+    <label>Algoritmo
+      <select id="mode">
+        <option value="naive">G, 2G, 3G, … kG (somme successive)</option>
+        <option value="dbl">double-and-add (veloce)</option>
+      </select>
+    </label>
+    <button id="btnRun">Calcola</button>
+    <button id="btnPreset1" class="sec">Preset p=17</button>
+    <button id="btnPreset2" class="sec">Preset p=10007</button>
+  </div>
+  <div class="err" id="err"></div>
+</section>
 
-      <div class="box">
-        <strong>Curve:</strong> y² = x³ + 7 (mod 17)<br>
-        <strong>Base point:</strong> G = (1, 5)<br>
-        <strong>Private key:</strong> k = 6
+<section>
+  <h2>1. Calcolo della chiave pubblica</h2>
+  <div id="pubkey" class="pub"></div>
+  <div id="curveinfo" class="sub"></div>
+  <h3>Multipli di G</h3>
+  <pre id="list"></pre>
+</section>
+
+<section>
+  <h2>2. Visualizzazione rallentata</h2>
+  <div class="two">
+    <div>
+      <canvas id="cv" width="580" height="580"></canvas>
+      <div class="legend" style="margin-top:6px">
+        <span><i class="dot" style="background:#4da3ff"></i>G</span>
+        <span><i class="dot" style="background:#43d19e"></i>primo operando</span>
+        <span><i class="dot" style="background:#b58cff"></i>secondo operando</span>
+        <span><i class="dot" style="background:#ff6b6b"></i>risultato</span>
+        <span><i class="dot" style="background:#ffb454"></i>multipli già calcolati</span>
+        <span><i class="dot" style="background:#4a5878"></i>punti della curva</span>
       </div>
-
-      <h2>1. Obiettivo</h2>
-      <p>
-        The goal of this exercise is to understand the basic mechanism behind elliptic-curve
-        scalar multiplication in a toy setting. The idea is the same used in real systems such as Ethereum,
-        even if here the curve and the key are much smaller.
-      </p>
-
-      <h2>2. Curve and valid points</h2>
-      <p>
-        We work over the finite field <strong>F₁₇</strong>, so all arithmetic is done modulo 17.
-        The valid points on the curve are:
-      </p>
-
-      <div class="box">
-        O, (1,5), (1,12), (2,7), (2,10), (3,0), (5,8), (5,9), (6,6), (6,11), (8,3), (8,14), (10,2), (10,15), (12,1), (12,16), (15,4), (15,13)
+    </div>
+    <div>
+      <div class="controls" style="margin-bottom:10px">
+        <button id="btnPlay">▶ Avvia</button>
+        <button id="btnStep" class="sec">Passo ›</button>
+        <button id="btnReset" class="sec">⟲ Reset</button>
+        <label>Pausa per passo<input id="speed" type="range" min="250" max="3000" value="1400"></label>
       </div>
-
-      <h2>3. Point addition</h2>
-      <p>
-        The key operation is point addition on the curve. For two points P and Q:
+      <div class="info" id="stepinfo">Premi «Avvia» o «Passo».</div>
+      <p class="sub" style="margin-top:10px;font-size:.85rem">
+        Sul campo finito non esiste una “retta” continua: la somma di punti è calcolata con le formule algebriche
+        (pendenza λ mod p), per questo i punti sembrano saltare a caso — è proprio l’aspetto che rende difficile risalire a k.
       </p>
-
-      <div class="box">
-        If P ≠ Q: λ = (y₂ - y₁) / (x₂ - x₁) mod 17<br>
-        If P = Q: λ = (3x₁² + a) / (2y₁) mod 17
-      </div>
-
-      <p>
-        In this toy curve, <strong>a = 0</strong>. Then:
-      </p>
-
-      <div class="box">
-        x₃ = λ² - x₁ - x₂ (mod 17)<br>
-        y₃ = λ(x₁ - x₃) - y₁ (mod 17)
-      </div>
-
-      <h2>4. Multiples of G</h2>
-      <p>
-        Starting from G = (1,5), we compute G, 2G, 3G, ..., up to 6G:
-      </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Multiplication</th>
-            <th>Point</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>G</td><td>(1, 5)</td></tr>
-          <tr><td>2G</td><td>(2, 10)</td></tr>
-          <tr><td>3G</td><td>(5, 9)</td></tr>
-          <tr><td>4G</td><td>(12, 1)</td></tr>
-          <tr><td>5G</td><td>(12, 16)</td></tr>
-          <tr><td>6G</td><td>(5, 8)</td></tr>
-        </tbody>
-      </table>
-
-      <h2>5. Final public key</h2>
-      <p class="result">
-        Q = 6G = (5, 8)
-      </p>
-
-      <h2>6. Visual representation</h2>
-      <canvas id="curveCanvas" width="760" height="440"></canvas>
-
-      <p>
-        In the graph, the blue points are the valid points on the curve, and the red path highlights the
-        sequence from G to 6G. This illustrates the idea behind public-key generation in elliptic-curve
-        cryptography.
-      </p>
-
-      <h2>7. Statistical exploration</h2>
-      <p>
-        We repeat the experiment for several values of the private key k, and we inspect the distribution
-        of the x and y coordinates of the resulting points. This gives us a simple statistical picture of
-        how the outputs behave.
-      </p>
-
-      <canvas id="statsCanvas" width="760" height="300"></canvas>
-
-      <p>
-        The outputs are not all equally frequent, but they do look spread over the curve. For a real
-        cryptographic one-way function, we want outputs to appear unpredictable and to avoid any simple
-        correlation with the input. In contrast, cryptographic hash functions are designed to produce a
-        fixed-length digest with strong diffusion and avalanche properties. They are not the same as
-        public-key generation, even though both are based on mathematical hardness.
-      </p>
-
-      <h2>8. Conclusion</h2>
-      <p>
-        The basic idea is very simple: a private key is a scalar, and the public key is the associated
-        point on the curve obtained through repeated addition. This operation is used in real cryptographic
-        systems such as Ethereum, which uses the secp256k1 curve. The toy example shows the intuition
-        without using the full scale of real-world cryptography.
-      </p>
-
-      <a class="btn" href="../index.html">Torna alla home</a>
+      <h3>Attacco brute force (ECDLP in miniatura)</h3>
+      <button id="btnBrute" class="sec">Ricava k da Q provando tutti i multipli</button>
+      <div id="bruteout" class="sub" style="margin-top:6px"></div>
     </div>
   </div>
+</section>
 
-  <script>
-    // --- curve drawing ---
-    const p = 17;
-    const G = { x: 1, y: 5 };
-    const k = 6;
+<section>
+  <h2>3. Esplorazione statistica</h2>
+  <p class="sub">Si calcolano tutti i punti <code>kG</code> per <code>k = 1 … n−1</code>, dove n è l’ordine del sottogruppo generato da G.</p>
+  <div id="metrics"></div>
+  <div class="grid" style="margin-top:12px">
+    <div class="card"><h3>Distribuzione di x (frequenza per bin)</h3><canvas id="hx" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Distribuzione di y (frequenza per bin)</h3><canvas id="hy" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Frequenza dei bit a 1 (x: prime barre, y: ultime) — riferimento 0.5</h3><canvas id="hb" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Avalanche: frazione media di bit d’uscita che cambiano se si inverte il bit i di k (rif. 0.5)</h3><canvas id="av" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Input → output: k (asse x) vs x(kG) (asse y)</h3><canvas id="sx" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Input → output: k (asse x) vs y(kG) (asse y)</h3><canvas id="sy" width="520" height="240"></canvas></div>
+  </div>
+</section>
 
-    function modInv(a, m) {
-      let t = 0, newT = 1;
-      let r = m, newR = a % m;
-      while (newR !== 0) {
-        const q = Math.floor(r / newR);
-        [t, newT] = [newT, t - q * newT];
-        [r, newR] = [newR, r - q * newR];
+<section>
+  <h2>4. Discussione</h2>
+  <div id="discussion">
+    <h3>Cosa mostrano i dati</h3>
+    <ul>
+      <li><b>Distribuzione di x e y</b>: i multipli di G coprono il sottogruppo in modo molto regolare. Ogni x compare esattamente due volte (con <i>y</i> e <i>−y</i>), quindi l’istogramma è piatto per costruzione, ma usa solo circa metà dei valori possibili di x (quelli per cui x³+7 è un residuo quadratico).</li>
+      <li><b>Simmetria</b>: <code>x((n−k)G) = x(kG)</code> e <code>y((n−k)G) = −y(kG)</code>. Il grafico k→x è quindi speculare attorno a n/2: una struttura algebrica evidente, che un hash non avrebbe.</li>
+      <li><b>Bit</b>: i bit di x e y sono vicini a 0.5 ma non esattamente, perché le coordinate sono in [0, p−1] e p non è una potenza di 2 (i bit alti sono sbilanciati).</li>
+      <li><b>Correlazione input/output</b>: r(k,x) e r(k,y) sono piccole; la sequenza dei multipli ha l’aspetto di una permutazione “casuale” del sottogruppo, anche se è interamente deterministica.</li>
+      <li><b>Avalanche</b>: invertire un bit di k cambia k di ±2^i, cioè Q → Q ± 2^i·G. Le coordinate appaiono molto diverse, ma la relazione è algebrica e nota (omomorfismo): non è un avalanche “crittografico”, e in un gruppo così piccolo i numeri sono comunque poco significativi.</li>
+    </ul>
+    <h3>Proprietà significative per una funzione one-way (ECC)</h3>
+    <ul>
+      <li><b>Facile in avanti, difficile all’indietro</b>: Q = kG costa O(log k) operazioni (double-and-add); ricavare k da Q richiede di risolvere l’ECDLP (≈ √n con gli attacchi generici migliori). Qui n è minuscolo, quindi il brute force è immediato; per secp256k1 n ≈ 2²⁵⁶.</li>
+      <li><b>Determinismo</b> e <b>output dall’aspetto uniforme</b> nel sottogruppo (nessuna correlazione utile tra k e Q).</li>
+      <li><b>Iniettività</b> su k ∈ [1, n−1]: ogni chiave privata dà una chiave pubblica diversa (nessuna collisione per costruzione).</li>
+      <li><b>Struttura algebrica</b> (cioè (k₁+k₂)G = k₁G + k₂G): non è un difetto, ma è ciò che rende possibili firme digitali, ECDH, ecc.</li>
+    </ul>
+    <h3>Proprietà tipiche delle funzioni hash crittografiche (non richieste, anzi assenti, in kG)</h3>
+    <ul>
+      <li><b>Input di lunghezza arbitraria → output di lunghezza fissa</b> (compressione), con collisioni inevitabili ma introvabili: <i>collision resistance</i> e <i>second-preimage resistance</i>.</li>
+      <li><b>Avalanche effect rigoroso</b>: ogni bit d’ingresso cambia circa il 50% dei bit d’uscita, senza relazioni algebriche sfruttabili.</li>
+      <li><b>Assenza di struttura</b>: un hash non deve essere omomorfico né avere simmetrie come x(kG) = x(−kG).</li>
+      <li><b>Uniformità bit a bit</b> dell’output su tutto lo spazio dei bit (qui invece l’output è un punto sulla curva, solo ~metà dello spazio (x,y) è occupato, e verifica l’equazione della curva).</li>
+    </ul>
+    <h3>Avvertenze sul toy</h3>
+    <ul>
+      <li>Per p ≡ 2 (mod 3), come p = 17, la curva y² = x³ + 7 è <i>supersingolare</i> e ha p+1 punti; secp256k1 ha invece p ≡ 1 (mod 3) ed è ordinaria. Il toy serve solo a capire la meccanica, non è sicuro.</li>
+      <li>Con gruppi così piccoli i test statistici hanno poca potenza: il preset p = 10007 dà risultati più leggibili.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+// ============================================================
+// CORE: aritmetica sulla curva y^2 = x^3 + 7 (mod p). null = punto all'infinito
+// ============================================================
+// ==CORE==
+const A_COEF = 0, B_COEF = 7;
+function mod(a, p) { return ((a % p) + p) % p; }
+function inv(a, p) {                       // inverso modulare (Euclide esteso)
+  a = mod(a, p);
+  let t = 0, nt = 1, r = p, nr = a;
+  while (nr) {
+    const q = Math.floor(r / nr);
+    [t, nt] = [nt, t - q * nt];
+    [r, nr] = [nr, r - q * nr];
+  }
+  if (r !== 1) throw new Error("non invertibile");
+  return mod(t, p);
+}
+function isPrime(n) {
+  if (n < 2) return false;
+  for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
+  return true;
+}
+function onCurve(P, p) {
+  return mod(P.y * P.y, p) === mod(P.x * P.x * P.x + A_COEF * P.x + B_COEF, p);
+}
+function same(P, Q) { return (!P && !Q) || (P && Q && P.x === Q.x && P.y === Q.y); }
+
+// somma di due punti: restituisce {R, lam, type}
+function addPts(P, Q, p) {
+  if (!P) return { R: Q, type: "id" };
+  if (!Q) return { R: P, type: "id" };
+  let lam, type;
+  if (P.x === Q.x) {
+    if (mod(P.y + Q.y, p) === 0) return { R: null, type: "inf" };
+    lam = mod(mod(3 * P.x * P.x + A_COEF, p) * inv(2 * P.y, p), p);   // raddoppio: tangente
+    type = "dbl";
+  } else {
+    lam = mod(mod(Q.y - P.y, p) * inv(Q.x - P.x, p), p);              // somma: secante
+    type = "add";
+  }
+  const x3 = mod(lam * lam - P.x - Q.x, p);
+  const y3 = mod(lam * (P.x - x3) - P.y, p);
+  return { R: { x: x3, y: y3 }, lam, type };
+}
+
+// sottogruppo generato da G: pts[i] = i*G per i = 0..n-1 (pts[0] = infinito); n = ordine
+function subgroup(G, p) {
+  const pts = [null, G];
+  let R = G;
+  const cap = 4 * p + 10;
+  while (pts.length < cap) {
+    const r = addPts(R, G, p).R;
+    if (!r) break;
+    pts.push(r);
+    R = r;
+  }
+  return { n: pts.length, pts };
+}
+
+// passi per calcolare kG. mode: "naive" (G,2G,3G,...) oppure "dbl" (double-and-add)
+function buildSteps(k, G, p, mode) {
+  const steps = [];
+  let R = G, m = 1;
+  if (mode === "naive") {
+    for (let j = 2; j <= k; j++) {
+      const r = addPts(R, G, p);
+      steps.push({ A: R, B: G, mA: m, mB: 1, R: r.R, lam: r.lam, type: r.type, mult: j });
+      R = r.R; m = j;
+      if (!R) break;
+    }
+  } else {
+    const bits = k.toString(2);
+    for (let i = 1; i < bits.length; i++) {
+      let r = addPts(R, R, p);
+      steps.push({ A: R, B: R, mA: m, mB: m, R: r.R, lam: r.lam, type: "dbl", mult: 2 * m });
+      R = r.R; m = 2 * m;
+      if (!R) break;
+      if (bits[i] === "1") {
+        r = addPts(R, G, p);
+        steps.push({ A: R, B: G, mA: m, mB: 1, R: r.R, lam: r.lam, type: r.type, mult: m + 1 });
+        R = r.R; m = m + 1;
+        if (!R) break;
       }
-      if (r !== 1) return null;
-      return t < 0 ? t + m : t;
     }
+  }
+  return { steps, result: R };
+}
 
-    function pointEq(P, Q) {
-      if (!P && !Q) return true;
-      if (!P || !Q) return false;
-      return P.x === Q.x && P.y === Q.y;
+// punti affini della curva (per il disegno)
+function allCurvePoints(p) {
+  const sq = new Map();
+  for (let y = 0; y < p; y++) {
+    const s = (y * y) % p;
+    if (!sq.has(s)) sq.set(s, []);
+    sq.get(s).push(y);
+  }
+  const res = [];
+  for (let x = 0; x < p; x++) {
+    const rhs = mod(x * x * x + A_COEF * x + B_COEF, p);
+    if (sq.has(rhs)) for (const y of sq.get(rhs)) res.push({ x, y });
+  }
+  return res;
+}
+// ==/CORE==
+
+// ============================================================
+// UTILITA' STATISTICHE
+// ============================================================
+function popcount(v) { let c = 0; v = v >>> 0; while (v) { c += v & 1; v >>>= 1; } return c; }
+function bitlen(v) { return Math.max(1, v.toString(2).length); }
+function pearson(a, b) {
+  const n = a.length; let ma = 0, mb = 0;
+  for (let i = 0; i < n; i++) { ma += a[i]; mb += b[i]; }
+  ma /= n; mb /= n;
+  let sab = 0, saa = 0, sbb = 0;
+  for (let i = 0; i < n; i++) { const da = a[i] - ma, db = b[i] - mb; sab += da * db; saa += da * da; sbb += db * db; }
+  return sab / Math.sqrt(saa * sbb || 1);
+}
+function entropy(counts, total) {
+  let h = 0;
+  for (const c of counts) if (c) { const q = c / total; h -= q * Math.log2(q); }
+  return h;
+}
+function fmix32(h) {                 // finalizzatore di MurmurHash3: hash di riferimento molto semplice
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16; return h >>> 0;
+}
+
+// ============================================================
+// STATO E DOM
+// ============================================================
+const $ = id => document.getElementById(id);
+const S = { p: 17, G: { x: 1, y: 5 }, k: 6, kEff: 6, mode: "naive", sg: null, steps: [], idx: 0, curve: [], timer: null, Q: null };
+
+function ptStr(P) { return P ? `(${P.x}, ${P.y})` : "∞"; }
+function setErr(msg) { $("err").textContent = msg || ""; }
+
+// ============================================================
+// RUN: legge i parametri, calcola, aggiorna tutto
+// ============================================================
+function run() {
+  stop();
+  setErr("");
+  const p = parseInt($("p").value, 10), gx = parseInt($("gx").value, 10), gy = parseInt($("gy").value, 10);
+  const k = parseInt($("k").value, 10);
+  let mode = $("mode").value;
+  if (!(p > 2 && isPrime(p) && p <= 20011)) return setErr("p deve essere un numero primo tra 3 e 20011.");
+  if (!(gx >= 0 && gx < p && gy >= 0 && gy < p)) return setErr("G deve avere coordinate in [0, p−1].");
+  const G = { x: gx, y: gy };
+  if (!onCurve(G, p)) return setErr(`G=(${gx},${gy}) NON è sulla curva: y² = ${mod(gy*gy,p)} ma x³+7 = ${mod(gx*gx*gx+7,p)} (mod ${p}).`);
+  if (!(k >= 1)) return setErr("k deve essere un intero ≥ 1.");
+
+  const sg = subgroup(G, p);
+  const n = sg.n;
+  let kEff = k % n, note = "";
+  if (kEff === 0) { kEff = n; note = `k è multiplo dell’ordine n=${n}: kG = ∞ (chiave non valida).`; }
+  else if (k >= n) note = `k ≥ n=${n}: si usa k mod n = ${kEff}.`;
+  if (mode === "naive" && kEff > 60) { mode = "dbl"; note += " (k grande: animazione con double-and-add)"; }
+
+  Object.assign(S, { p, G, k, kEff, mode, sg, curve: allCurvePoints(p), idx: 0 });
+  const built = kEff === n ? { steps: [], result: null } : buildSteps(kEff, G, p, mode);
+  S.steps = built.steps;
+  S.Q = kEff === n ? null : sg.pts[kEff];
+  const check = kEff === n ? true : same(built.result, S.Q);
+
+  // --- 1. risultato
+  $("pubkey").innerHTML = `TOY PUBLIC KEY  Q = ${k}·G = ${ptStr(S.Q)}`;
+  $("curveinfo").innerHTML =
+    `Curva y² = x³ + 7 (mod ${p}) · punti affini: ${S.curve.length} (+∞ = ${S.curve.length + 1}) · G = ${ptStr(G)} · ordine di G: <b>n = ${n}</b> · ` +
+    `verifica naive = double-and-add: <b class="${check ? "good" : "warnc"}">${check ? "OK ✓" : "ERRORE"}</b>` + (note ? `<br><span class="warnc">${note}</span>` : "");
+  renderList(kEff, n);
+
+  // --- 2. disegno
+  $("stepinfo").innerHTML = S.steps.length ? "Premi «Avvia» o «Passo»." : "k = 1: la chiave pubblica coincide con G, nessun passo da mostrare.";
+  $("bruteout").textContent = "";
+  drawMain();
+
+  // --- 3. statistiche
+  computeStats();
+}
+
+function renderList(kEff, n) {
+  const pts = S.sg.pts;
+  const lines = [];
+  const show = i => lines.push(`${String(i).padStart(4)}G = ${ptStr(pts[i])}` + (i === kEff ? "   ← k·G = TOY PUBLIC KEY" : ""));
+  if (kEff >= n) { lines.push(`${n}G = ∞`); }
+  else if (S.mode === "naive" || kEff <= 64) {
+    for (let i = 1; i <= kEff; i++) show(i);
+  } else {
+    for (let i = 1; i <= 12; i++) show(i);
+    lines.push("   …");
+    for (let i = kEff - 3; i <= kEff; i++) show(i);
+  }
+  if (S.mode === "dbl" && S.steps.length) {
+    lines.push("", "Passi double-and-add per k = " + kEff + " (binario " + kEff.toString(2) + "):");
+    for (const s of S.steps) lines.push(`  ${s.type === "dbl" ? "raddoppio" : "somma    "}: ${s.mult}G = ${ptStr(s.R)}`);
+  }
+  $("list").textContent = lines.join("\n");
+}
+
+// ============================================================
+// DISEGNO (canvas) + ANIMAZIONE
+// ============================================================
+function drawMain() {
+  const cv = $("cv"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height, M = 38, p = S.p;
+  const cell = (W - 2 * M) / (p - 1);
+  const X = x => M + x * cell, Y = y => H - M - y * cell;
+  ctx.clearRect(0, 0, W, H);
+
+  // griglia e assi
+  ctx.strokeStyle = "#1d2740"; ctx.lineWidth = 1; ctx.fillStyle = "#8d98b0"; ctx.font = "10px sans-serif";
+  const tick = p <= 40 ? 1 : Math.ceil(p / 12);
+  ctx.textAlign = "center";
+  for (let i = 0; i < p; i += tick) {
+    ctx.beginPath(); ctx.moveTo(X(i), Y(0)); ctx.lineTo(X(i), Y(p - 1)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(0), Y(i)); ctx.lineTo(X(p - 1), Y(i)); ctx.stroke();
+    ctx.fillText(i, X(i), H - M + 16);
+    ctx.textAlign = "right"; ctx.fillText(i, M - 8, Y(i) + 3); ctx.textAlign = "center";
+  }
+  ctx.fillText("x", W - 12, H - M + 16); ctx.fillText("y", M - 24, 14);
+
+  // punti della curva
+  const r = Math.max(1.4, Math.min(5, cell * 0.26));
+  ctx.fillStyle = "#4a5878";
+  for (const P of S.curve) { ctx.beginPath(); ctx.arc(X(P.x), Y(P.y), r, 0, 7); ctx.fill(); }
+
+  const label = (P, txt, color, big) => {
+    if (!P || p > 60) return;
+    ctx.fillStyle = color; ctx.font = (big ? "bold 13px" : "11px") + " sans-serif"; ctx.textAlign = "left";
+    ctx.fillText(txt, X(P.x) + r + 3, Y(P.y) - r - 2);
+  };
+  const dot = (P, color, rad) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(X(P.x), Y(P.y), rad, 0, 7); ctx.fill(); };
+  const ring = (P, color, rad) => { ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(X(P.x), Y(P.y), rad, 0, 7); ctx.stroke(); };
+  const arrow = (a, b, color) => {
+    if (!a || !b || (a.x === b.x && a.y === b.y)) return;
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(X(a.x), Y(a.y)); ctx.lineTo(X(b.x), Y(b.y)); ctx.stroke(); ctx.setLineDash([]);
+    const ang = Math.atan2(Y(b.y) - Y(a.y), X(b.x) - X(a.x)), hx = X(b.x) - Math.cos(ang) * (r + 6), hy = Y(b.y) - Math.sin(ang) * (r + 6);
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(hx, hy);
+    ctx.lineTo(hx - 9 * Math.cos(ang - 0.4), hy - 9 * Math.sin(ang - 0.4));
+    ctx.lineTo(hx - 9 * Math.cos(ang + 0.4), hy - 9 * Math.sin(ang + 0.4)); ctx.closePath(); ctx.fill();
+  };
+
+  // multipli già calcolati
+  const done = S.steps.slice(0, S.idx);
+  for (const s of done) if (s.R) { dot(s.R, "#ffb454", r + 1.5); label(s.R, s.mult + "G", "#ffb454", false); }
+  // G
+  dot(S.G, "#4da3ff", r + 2.5); label(S.G, "G", "#4da3ff", true);
+  // passo corrente
+  if (done.length) {
+    const s = done[done.length - 1];
+    if (s.A) { ring(s.A, "#43d19e", r + 6); }
+    if (s.B && !(s.A && s.A.x === s.B.x && s.A.y === s.B.y)) ring(s.B, "#b58cff", r + 10);
+    if (s.R) { arrow(s.A, s.R, "#43d19e"); if (s.type === "add") arrow(s.B, s.R, "#b58cff"); dot(s.R, "#ff6b6b", r + 3.5); label(s.R, s.mult + "G", "#ff6b6b", true); }
+    if (s.A) label(s.A, s.mA + "G", "#43d19e", true);
+  }
+  // chiave pubblica finale
+  if (S.idx === S.steps.length && S.Q && S.steps.length) {
+    ctx.strokeStyle = "#43d19e"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(S.Q.x), Y(S.Q.y), r + 9, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#43d19e"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "left";
+    ctx.fillText("Q = " + S.kEff + "G", Math.min(X(S.Q.x) + r + 14, W - 80), Y(S.Q.y) + 4);
+  }
+}
+
+function describeStep(s, i) {
+  const p = S.p;
+  const op = s.type === "dbl"
+    ? `<b>raddoppio</b> ${s.mA}G + ${s.mA}G`
+    : `<b>somma</b> ${s.mA}G + ${s.mB}G`;
+  let html = `Passo ${i}/${S.steps.length} · ${op} → <b>${s.mult}G</b><br>`;
+  html += `A = ${ptStr(s.A)}, B = ${ptStr(s.B)}<br>`;
+  if (!s.R) return html + "risultato: punto all’infinito ∞";
+  if (s.type === "dbl")
+    html += `λ = 3x²/(2y) = 3·${s.A.x}² / (2·${s.A.y}) = <b>${s.lam}</b> (mod ${p})<br>`;
+  else
+    html += `λ = (y₂−y₁)/(x₂−x₁) = (${s.B.y}−${s.A.y})/(${s.B.x}−${s.A.x}) = <b>${s.lam}</b> (mod ${p})<br>`;
+  html += `x₃ = λ² − x₁ − x₂ = ${s.R.x}<br>y₃ = λ(x₁ − x₃) − y₁ = ${s.R.y}<br>`;
+  html += `<span class="good">⇒ ${s.mult}G = ${ptStr(s.R)}</span>`;
+  if (S.idx === S.steps.length) html += `<br><br><b class="good">FINE: TOY PUBLIC KEY Q = ${S.kEff}·G = ${ptStr(S.Q)}</b>`;
+  return html;
+}
+
+function step() {
+  if (S.idx >= S.steps.length) { stop(); return false; }
+  S.idx++;
+  $("stepinfo").innerHTML = describeStep(S.steps[S.idx - 1], S.idx);
+  drawMain();
+  return S.idx < S.steps.length;
+}
+function play() {
+  stop();
+  if (S.idx >= S.steps.length) { S.idx = 0; drawMain(); }
+  $("btnPlay").textContent = "⏸ Pausa";
+  const tick = () => {
+    if (step()) S.timer = setTimeout(tick, +$("speed").value);
+    else stop();
+  };
+  S.timer = setTimeout(tick, 300);
+}
+function stop() { clearTimeout(S.timer); S.timer = null; $("btnPlay").textContent = "▶ Avvia"; }
+function resetAnim() { stop(); S.idx = 0; $("stepinfo").innerHTML = "Premi «Avvia» o «Passo»."; drawMain(); }
+
+function brute() {
+  if (!S.Q) return;
+  const t0 = performance.now();
+  let R = S.G, i = 1;
+  while (!same(R, S.Q) && i < S.sg.n) { R = addPts(R, S.G, S.p).R; i++; }
+  const dt = (performance.now() - t0).toFixed(2);
+  $("bruteout").innerHTML = `Trovato k = <b>${i}</b> dopo ${i} somme (${dt} ms). Con n ≈ ${S.sg.n} è banale; per secp256k1 (n ≈ 2²⁵⁶ ≈ 1.2·10⁷⁷) servirebbero ~√n ≈ 10³⁸ operazioni anche con gli algoritmi migliori.`;
+}
+
+// ============================================================
+// GRAFICI
+// ============================================================
+function barChart(cv, values, opt = {}) {
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, L = 40, B = 22, T = 10, R = 8;
+  ctx.clearRect(0, 0, W, H);
+  const maxV = opt.max ?? Math.max(...values, opt.ref ?? 0, 1e-9) * 1.1;
+  const bw = (W - L - R) / values.length;
+  ctx.strokeStyle = "#2a3550"; ctx.fillStyle = "#8d98b0"; ctx.font = "10px sans-serif"; ctx.textAlign = "right";
+  for (let t = 0; t <= 4; t++) {
+    const y = H - B - (H - B - T) * t / 4, v = maxV * t / 4;
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke();
+    ctx.fillText(opt.int ? Math.round(v) : v.toFixed(2), L - 4, y + 3);
+  }
+  ctx.fillStyle = "#4da3ff";
+  values.forEach((v, i) => {
+    const h = (H - B - T) * v / maxV;
+    if (opt.colors) ctx.fillStyle = opt.colors[i];
+    ctx.fillRect(L + i * bw + 0.5, H - B - h, Math.max(1, bw - 1), h);
+  });
+  if (opt.ref != null) {
+    const y = H - B - (H - B - T) * opt.ref / maxV;
+    ctx.strokeStyle = "#ff6b6b"; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.fillStyle = "#8d98b0"; ctx.textAlign = "center";
+  (opt.xlabels || []).forEach(([i, txt]) => ctx.fillText(txt, L + (i + 0.5) * bw, H - 6));
+}
+function scatter(cv, xs, ys, xmax, ymax, color) {
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, L = 40, B = 22, T = 10, R = 8;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = "#2a3550"; ctx.fillStyle = "#8d98b0"; ctx.font = "10px sans-serif"; ctx.textAlign = "right";
+  for (let t = 0; t <= 4; t++) {
+    const y = H - B - (H - B - T) * t / 4;
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke();
+    ctx.fillText(Math.round(ymax * t / 4), L - 4, y + 3);
+  }
+  ctx.textAlign = "center";
+  for (let t = 0; t <= 4; t++) ctx.fillText(Math.round(xmax * t / 4), L + (W - L - R) * t / 4, H - 6);
+  ctx.fillStyle = color;
+  const s = xs.length > 3000 ? 1.5 : 2.5;
+  for (let i = 0; i < xs.length; i++) {
+    ctx.fillRect(L + (W - L - R) * xs[i] / xmax - s / 2, H - B - (H - B - T) * ys[i] / ymax - s / 2, s, s);
+  }
+}
+
+// ============================================================
+// STATISTICHE
+// ============================================================
+function computeStats() {
+  const { p, sg } = S, n = sg.n, pts = sg.pts;
+  const bw = bitlen(p - 1);
+  const xs = [], ys = [], ks = [];
+  for (let k = 1; k < n; k++) { xs.push(pts[k].x); ys.push(pts[k].y); ks.push(k); }
+  const N = xs.length;
+  if (N < 4) { $("metrics").innerHTML = "<p class='warnc'>Sottogruppo troppo piccolo per le statistiche.</p>"; return; }
+
+  // frequenze
+  const cx = new Array(p).fill(0), cy = new Array(p).fill(0);
+  for (let i = 0; i < N; i++) { cx[xs[i]]++; cy[ys[i]]++; }
+  const usedX = cx.filter(c => c > 0), usedY = cy.filter(c => c > 0);
+  const Hx = entropy(cx, N), Hy = entropy(cy, N);
+
+  // istogrammi a bin
+  const bins = Math.min(p, 64);
+  const hx = new Array(bins).fill(0), hy = new Array(bins).fill(0);
+  for (let i = 0; i < N; i++) { hx[Math.floor(xs[i] * bins / p)]++; hy[Math.floor(ys[i] * bins / p)]++; }
+  const xl = [[0, "0"], [bins - 1, String(p - 1)]];
+  barChart($("hx"), hx, { int: true, xlabels: xl, ref: N / bins });
+  barChart($("hy"), hy, { int: true, xlabels: xl, ref: N / bins });
+
+  // bit
+  const bx = new Array(bw).fill(0), by = new Array(bw).fill(0);
+  for (let i = 0; i < N; i++) for (let b = 0; b < bw; b++) { bx[b] += (xs[i] >> b) & 1; by[b] += (ys[i] >> b) & 1; }
+  const bitFr = [...bx, ...by].map(v => v / N);
+  const colors = bitFr.map((_, i) => i < bw ? "#4da3ff" : "#b58cff");
+  barChart($("hb"), bitFr, { max: 1, ref: 0.5, colors, xlabels: [[0, "x:b0"], [bw - 1, "x:b" + (bw - 1)], [bw, "y:b0"], [2 * bw - 1, "y:b" + (bw - 1)]] });
+  const bias = Math.max(...bitFr.map(f => Math.abs(f - 0.5)));
+
+  // avalanche su k -> (x,y)
+  const kb = bitlen(n - 1), m = 2 * bw;
+  const enc = k => (pts[k].x << bw) | pts[k].y;
+  const sumCurve = new Array(kb).fill(0), cntCurve = new Array(kb).fill(0);
+  const sumHash = new Array(kb).fill(0);
+  const mask = m >= 31 ? 0x7fffffff : (1 << m) - 1;
+  for (let k = 1; k < n; k++) {
+    for (let i = 0; i < kb; i++) {
+      const k2 = k ^ (1 << i);
+      if (k2 < 1 || k2 >= n) continue;
+      sumCurve[i] += popcount(enc(k) ^ enc(k2)) / m;
+      sumHash[i] += popcount((fmix32(k) ^ fmix32(k2)) & mask) / m;
+      cntCurve[i]++;
     }
+  }
+  const avC = sumCurve.map((s, i) => cntCurve[i] ? s / cntCurve[i] : 0);
+  const avH = sumHash.map((s, i) => cntCurve[i] ? s / cntCurve[i] : 0);
+  const meanC = avC.reduce((a, b) => a + b, 0) / kb, meanH = avH.reduce((a, b) => a + b, 0) / kb;
+  barChart($("av"), avC, { max: 1, ref: 0.5, xlabels: [[0, "bit 0 di k"], [kb - 1, "bit " + (kb - 1)]] });
 
-    function pointAdd(P, Q) {
-      if (!P) return Q;
-      if (!Q) return P;
-      if (P.x === Q.x && ((P.y + Q.y) % p === 0)) return null;
+  // correlazioni e simmetria
+  const rKX = pearson(ks, xs), rKY = pearson(ks, ys);
+  const rLag = pearson(xs.slice(0, -1), xs.slice(1));
+  let sym = 0;
+  for (let k = 1; k < n; k++) { const a = pts[k], b = pts[n - k]; if (b && a.x === b.x && mod(a.y + b.y, p) === 0) sym++; }
+  // scatter
+  scatter($("sx"), ks, xs, n, p, "#4da3ff");
+  scatter($("sy"), ks, ys, n, p, "#b58cff");
 
-      let lambda;
+  // Metriche: tabella
+  const row = (a, b, c = "") => `<tr><td>${a}</td><td>${b}</td><td class="sub">${c}</td></tr>`;
+  $("metrics").innerHTML = `<table>
+    <tr><th>Proprietà</th><th>Valore misurato</th><th>Commento</th></tr>
+    ${row("Ordine n del sottogruppo di G", `<b>${n}</b>`, `punti kG per k=1…${n - 1}: ${N}`)}
+    ${row("Valori di x usati", `${usedX.length} su ${p}`, `frequenza min/max: ${Math.min(...usedX)} / ${Math.max(...usedX)} (di solito 2: ±y)`)}
+    ${row("Valori di y usati", `${usedY.length} su ${p}`, `frequenza min/max: ${Math.min(...usedY)} / ${Math.max(...usedY)}`)}
+    ${row("Entropia di Shannon H(x), H(y)", `${Hx.toFixed(3)}, ${Hy.toFixed(3)} bit`, `massimo teorico log₂p = ${Math.log2(p).toFixed(3)} bit`)}
+    ${row("Bias massimo dei bit", bias.toFixed(3), "|freq(bit=1) − 0.5|: i bit alti sono sbilanciati se p non è potenza di 2")}
+    ${row("Correlazione di Pearson r(k, x)", rKX.toFixed(3), "vicina a 0 = nessuna dipendenza lineare")}
+    ${row("Correlazione di Pearson r(k, y)", rKY.toFixed(3), "")}
+    ${row("Autocorrelazione lag-1 di x(kG)", rLag.toFixed(3), "x(kG) vs x((k+1)G)")}
+    ${row("Simmetria x((n−k)G) = x(kG), y opposta", `${sym} / ${n - 1} valori di k`, "struttura algebrica: un hash NON dovrebbe averla")}
+    ${row("Avalanche medio su kG", `<b>${meanC.toFixed(3)}</b> (ideale 0.5)`, `bit d’uscita = ${m} (x,y su ${bw} bit)`)}
+    ${row("Avalanche medio hash di riferimento (fmix32)", `<b>${meanH.toFixed(3)}</b>`, "funzione di mixing di MurmurHash3 troncata allo stesso numero di bit")}
+  </table>`;
+}
 
-      if (pointEq(P, Q)) {
-        if (P.y === 0) return null;
-        lambda = (3 * P.x * P.x) * modInv((2 * P.y) % p, p) % p;
-      } else {
-        const dx = (Q.x - P.x + p) % p;
-        const dy = (Q.y - P.y + p) % p;
-        lambda = (dy * modInv(dx, p)) % p;
-      }
-
-      const x3 = (lambda * lambda - P.x - Q.x) % p;
-      const y3 = (lambda * (P.x - x3) - P.y) % p;
-
-      return {
-        x: (x3 + p) % p,
-        y: (y3 + p) % p
-      };
-    }
-
-    function generateCurvePoints() {
-      const points = [];
-      for (let x = 0; x < p; x++) {
-        const rhs = (x * x * x + 7) % p;
-        for (let y = 0; y < p; y++) {
-          if ((y * y) % p === rhs) {
-            points.push({ x, y });
-          }
-        }
-      }
-      return points;
-    }
-
-    const points = generateCurvePoints();
-    const curveCanvas = document.getElementById("curveCanvas");
-    const ctx = curveCanvas.getContext("2d");
-    const W = curveCanvas.width;
-    const H = curveCanvas.height;
-    const margin = 36;
-    const sx = (W - 2 * margin) / (p - 1);
-    const sy = (H - 2 * margin) / (p - 1);
-
-    function toCanvas(x, y) {
-      return {
-        x: margin + x * sx,
-        y: H - margin - y * sy
-      };
-    }
-
-    // grid
-    ctx.strokeStyle = "#eaeef7";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < p; i++) {
-      const x = margin + i * sx;
-      const y = margin + i * sy;
-
-      ctx.beginPath();
-      ctx.moveTo(x, margin);
-      ctx.lineTo(x, H - margin);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(margin, y);
-      ctx.lineTo(W - margin, y);
-      ctx.stroke();
-    }
-
-    // valid curve points
-    points.forEach(pt => {
-      const pnt = toCanvas(pt.x, pt.y);
-      ctx.beginPath();
-      ctx.fillStyle = "#1d7ae0";
-      ctx.arc(pnt.x, pnt.y, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // multiples path
-    let current = null;
-    const path = [];
-    for (let i = 1; i <= k; i++) {
-      current = pointAdd(current, G);
-      path.push(toCanvas(current.x, current.y));
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(path[0].x, path[0].y);
-    for (let i = 1; i < path.length; i++) {
-      ctx.lineTo(path[i].x, path[i].y);
-    }
-    ctx.strokeStyle = "#d75a5a";
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    // labels
-    path.forEach((pt, idx) => {
-      const label = idx === 0 ? "G" : `${idx + 1}G`;
-      ctx.beginPath();
-      ctx.fillStyle = "#2b9d69";
-      ctx.arc(pt.x, pt.y, 5.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#1f2430";
-      ctx.font = "12px Arial";
-      ctx.fillText(label, pt.x + 8, pt.y - 10);
-    });
-
-    // --- statistical chart ---
-    const statsCanvas = document.getElementById("statsCanvas");
-    const sctx = statsCanvas.getContext("2d");
-
-    const xData = [0, 1, 2, 3, 5, 8, 9, 12, 15];
-    const yData = [0, 5, 10, 9, 8, 14, 3, 1, 13];
-
-    const chartX = 60;
-    const chartY = 240;
-    const chartW = 640;
-    const chartH = 180;
-
-    sctx.fillStyle = "#ffffff";
-    sctx.fillRect(0, 0, statsCanvas.width, statsCanvas.height);
-
-    sctx.strokeStyle = "#dfe5f1";
-    sctx.lineWidth = 1.2;
-    sctx.beginPath();
-    sctx.moveTo(chartX, chartY);
-    sctx.lineTo(chartX, chartY - chartH);
-    sctx.lineTo(chartX + chartW, chartY - chartH);
-    sctx.stroke();
-
-    const maxVal = 16;
-    const step = chartW / xData.length;
-
-    xData.forEach((value, i) => {
-      const barWidth = step * 0.6;
-      const barHeight = (value / maxVal) * chartH;
-      const x = chartX + i * step + 10;
-      const y = chartY - barHeight;
-
-      sctx.fillStyle = "#1d7ae0";
-      sctx.fillRect(x, y, barWidth, barHeight);
-
-      sctx.fillStyle = "#5f6875";
-      sctx.font = "12px Arial";
-      sctx.fillText(String(value), x + 8, chartY + 18);
-    });
-
-    sctx.fillStyle = "#1f2430";
-    sctx.font = "16px Arial";
-    sctx.fillText("x-coordinate frequency", 260, 20);
-
-    // small y legend
-    sctx.fillStyle = "#2b9d69";
-    sctx.fillRect(500, 30, 18, 18);
-    sctx.fillStyle = "#1f2430";
-    sctx.font = "12px Arial";
-    sctx.fillText("y distribution sample", 525, 44);
-  </script>
+// ============================================================
+// EVENTI
+// ============================================================
+function findBase(p) {
+  for (const P of allCurvePoints(p)) if (P.x > 0 && P.y > 0) {
+    const n = subgroup(P, p).n;
+    if (n > 0.8 * (p + 1)) return P;    // preferisci un punto che genera (quasi) tutto il gruppo
+  }
+  return allCurvePoints(p)[0];
+}
+$("btnRun").onclick = run;
+$("btnPlay").onclick = () => S.timer ? stop() : play();
+$("btnStep").onclick = () => { stop(); step(); };
+$("btnReset").onclick = resetAnim;
+$("btnBrute").onclick = brute;
+$("btnPreset1").onclick = () => { $("p").value = 17; $("gx").value = 1; $("gy").value = 5; $("k").value = 6; $("mode").value = "naive"; run(); };
+$("btnPreset2").onclick = () => {
+  const G = findBase(10007);
+  $("p").value = 10007; $("gx").value = G.x; $("gy").value = G.y; $("k").value = 1234; $("mode").value = "dbl"; run();
+};
+run();
+</script>
 </body>
 </html>
