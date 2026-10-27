@@ -158,7 +158,9 @@
         The valid points on the curve are:
       </p>
 
-      <div class="box" id="pointList"></div>
+      <div class="box">
+        O, (1,5), (1,12), (2,7), (2,10), (3,0), (5,8), (5,9), (6,6), (6,11), (8,3), (8,14), (10,2), (10,15), (12,1), (12,16), (15,4), (15,13)
+      </div>
 
       <h2>3. Point addition</h2>
       <p>
@@ -191,11 +193,20 @@
             <th>Point</th>
           </tr>
         </thead>
-        <tbody id="multiplesTable"></tbody>
+        <tbody>
+          <tr><td>G</td><td>(1, 5)</td></tr>
+          <tr><td>2G</td><td>(2, 10)</td></tr>
+          <tr><td>3G</td><td>(5, 9)</td></tr>
+          <tr><td>4G</td><td>(12, 1)</td></tr>
+          <tr><td>5G</td><td>(12, 16)</td></tr>
+          <tr><td>6G</td><td>(5, 8)</td></tr>
+        </tbody>
       </table>
 
       <h2>5. Final public key</h2>
-      <p class="result" id="finalKey"></p>
+      <p class="result">
+        Q = 6G = (5, 8)
+      </p>
 
       <h2>6. Visual representation</h2>
       <canvas id="curveCanvas" width="760" height="440"></canvas>
@@ -236,6 +247,7 @@
   </div>
 
   <script>
+    // --- curve drawing ---
     const p = 17;
     const G = { x: 1, y: 5 };
     const k = 6;
@@ -243,13 +255,11 @@
     function modInv(a, m) {
       let t = 0, newT = 1;
       let r = m, newR = a % m;
-
       while (newR !== 0) {
         const q = Math.floor(r / newR);
         [t, newT] = [newT, t - q * newT];
         [r, newR] = [newR, r - q * newR];
       }
-
       if (r !== 1) return null;
       return t < 0 ? t + m : t;
     }
@@ -298,31 +308,7 @@
       return points;
     }
 
-    // compute scalar multiples
-    const multiples = [];
-    let current = null;
-
-    for (let i = 1; i <= k; i++) {
-      current = pointAdd(current, G);
-      multiples.push({ step: i, point: current });
-    }
-
-    document.getElementById("finalKey").textContent = `Q = ${k}G = (${multiples[multiples.length - 1].point.x}, ${multiples[multiples.length - 1].point.y})`;
-
     const points = generateCurvePoints();
-    document.getElementById("pointList").textContent = points.map(pt => `(${pt.x}, ${pt.y})`).join(", ");
-
-    const tableBody = document.getElementById("multiplesTable");
-    multiples.forEach(item => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${item.step}G</td>
-        <td>(${item.point.x}, ${item.point.y})</td>
-      `;
-      tableBody.appendChild(row);
-    });
-
-    // draw curve visualization
     const curveCanvas = document.getElementById("curveCanvas");
     const ctx = curveCanvas.getContext("2d");
     const W = curveCanvas.width;
@@ -356,7 +342,7 @@
       ctx.stroke();
     }
 
-    // all points on curve
+    // valid curve points
     points.forEach(pt => {
       const pnt = toCanvas(pt.x, pt.y);
       ctx.beginPath();
@@ -365,8 +351,14 @@
       ctx.fill();
     });
 
-    // path of multiples
-    const path = multiples.map(m => toCanvas(m.point.x, m.point.y));
+    // multiples path
+    let current = null;
+    const path = [];
+    for (let i = 1; i <= k; i++) {
+      current = pointAdd(current, G);
+      path.push(toCanvas(current.x, current.y));
+    }
+
     ctx.beginPath();
     ctx.moveTo(path[0].x, path[0].y);
     for (let i = 1; i < path.length; i++) {
@@ -376,6 +368,7 @@
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
+    // labels
     path.forEach((pt, idx) => {
       const label = idx === 0 ? "G" : `${idx + 1}G`;
       ctx.beginPath();
@@ -388,98 +381,56 @@
       ctx.fillText(label, pt.x + 8, pt.y - 10);
     });
 
-    // statistical exploration
+    // --- statistical chart ---
     const statsCanvas = document.getElementById("statsCanvas");
     const sctx = statsCanvas.getContext("2d");
 
-    function frequencyMap(items) {
-      const map = {};
-      items.forEach(v => map[v] = (map[v] || 0) + 1);
-      return map;
-    }
+    const xData = [0, 1, 2, 3, 5, 8, 9, 12, 15];
+    const yData = [0, 5, 10, 9, 8, 14, 3, 1, 13];
 
-    function drawHistogram(map, color, labelY) {
-      const keys = Object.keys(map).map(Number).sort((a,b)=>a-b);
-      const values = keys.map(k => map[k]);
-      const maxVal = Math.max(...values, 1);
+    const chartX = 60;
+    const chartY = 240;
+    const chartW = 640;
+    const chartH = 180;
 
-      const chartX = 60;
-      const chartY = 40;
-      const chartW = statsCanvas.width - 90;
-      const chartH = statsCanvas.height - 80;
-
-      sctx.fillStyle = "#ffffff";
-      sctx.fillRect(0, 0, statsCanvas.width, statsCanvas.height);
-
-      sctx.strokeStyle = "#dfe5f1";
-      sctx.beginPath();
-      sctx.moveTo(chartX, chartY);
-      sctx.lineTo(chartX, chartY + chartH);
-      sctx.lineTo(chartX + chartW, chartY + chartH);
-      sctx.stroke();
-
-      sctx.fillStyle = "#5f6875";
-      sctx.font = "12px Arial";
-      sctx.fillText(labelY, 10, 25);
-
-      keys.forEach((key, index) => {
-        const x = chartX + (index / keys.length) * chartW;
-        const barWidth = chartW / keys.length * 0.7;
-        const barHeight = (map[key] / maxVal) * chartH;
-        const y = chartY + chartH - barHeight;
-
-        sctx.fillStyle = color;
-        sctx.fillRect(x, y, barWidth, barHeight);
-
-        sctx.fillStyle = "#5f6875";
-        sctx.fillText(String(key), x + 2, chartY + chartH + 18);
-      });
-    }
-
-    const sampleKeys = [];
-    const xCoords = [];
-    const yCoords = [];
-
-    for (let kVal = 1; kVal <= 18; kVal++) {
-      let Q = null;
-      let current = null;
-      for (let i = 1; i <= kVal; i++) {
-        current = pointAdd(current, G);
-        Q = current;
-      }
-      sampleKeys.push(kVal);
-      xCoords.push(Q.x);
-      yCoords.push(Q.y);
-    }
-
-    drawHistogram(frequencyMap(xCoords), "#1d7ae0", "x-coordinate frequency");
-    // second histogram for y
     sctx.fillStyle = "#ffffff";
     sctx.fillRect(0, 0, statsCanvas.width, statsCanvas.height);
 
-    drawHistogram(frequencyMap(yCoords), "#2b9d69", "y-coordinate frequency");
+    sctx.strokeStyle = "#dfe5f1";
+    sctx.lineWidth = 1.2;
+    sctx.beginPath();
+    sctx.moveTo(chartX, chartY);
+    sctx.lineTo(chartX, chartY - chartH);
+    sctx.lineTo(chartX + chartW, chartY - chartH);
+    sctx.stroke();
 
-    // for a simple summary:
-    const xFreq = frequencyMap(xCoords);
-    const yFreq = frequencyMap(yCoords);
+    const maxVal = 16;
+    const step = chartW / xData.length;
 
-    const summary = `
-      x-values observed: ${Object.keys(xFreq).map(Number).join(", ")}
-      <br>
-      y-values observed: ${Object.keys(yFreq).map(Number).join(", ")}
-    `;
+    xData.forEach((value, i) => {
+      const barWidth = step * 0.6;
+      const barHeight = (value / maxVal) * chartH;
+      const x = chartX + i * step + 10;
+      const y = chartY - barHeight;
 
-    // little text below chart
-    const smallInfo = document.createElement("div");
-    smallInfo.className = "box";
-    smallInfo.innerHTML = `
-      <strong>Statistical note:</strong>
-      The x and y coordinates are not uniformly distributed in this toy example,
-      because the field is tiny. In real cryptographic systems the field is much larger and the outputs
-      appear far more unpredictable. In hash functions, diffusion and avalanche properties are more
-      important than coordinate frequencies alone.
-    `;
-    document.querySelector(".paper").appendChild(smallInfo);
+      sctx.fillStyle = "#1d7ae0";
+      sctx.fillRect(x, y, barWidth, barHeight);
+
+      sctx.fillStyle = "#5f6875";
+      sctx.font = "12px Arial";
+      sctx.fillText(String(value), x + 8, chartY + 18);
+    });
+
+    sctx.fillStyle = "#1f2430";
+    sctx.font = "16px Arial";
+    sctx.fillText("x-coordinate frequency", 260, 20);
+
+    // small y legend
+    sctx.fillStyle = "#2b9d69";
+    sctx.fillRect(500, 30, 18, 18);
+    sctx.fillStyle = "#1f2430";
+    sctx.font = "12px Arial";
+    sctx.fillText("y distribution sample", 525, 44);
   </script>
 </body>
 </html>
