@@ -5,50 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Statistics Homework Blog</title>
   <style>
+    :root {
+      --bg: #eeeeee;
+      --panel: #f4f4f4;
+      --panel-strong: #ffffff;
+      --border: #d9d9d9;
+      --text: #262b33;
+      --muted: #5e6670;
+      --link: #1f7ae0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      background: #f4f4f4;
-      color: #222;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
     }
 
     .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
     }
 
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+      margin: 0 0 30px 0;
+      font-size: clamp(2.8rem, 4vw, 5rem);
+      line-height: 1.1;
+      letter-spacing: -0.06em;
+      font-weight: 800;
+      color: #2b2f36;
     }
 
     .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    }
-
-    h2 {
-      margin: 0 0 10px 0;
-      font-size: 1.8rem;
-    }
-
-    p {
-      margin: 0;
-      color: #444;
-      font-size: 1rem;
-    }
-
-    a {
-      color: #0d6efd;
+      display: block;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px 28px 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.02);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
       text-decoration: none;
+      color: inherit;
     }
 
-    a:hover {
-      text-decoration: underline;
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    .card h2 {
+      margin: 0 0 12px 0;
+      font-size: clamp(2.1rem, 3vw, 3.3rem);
+      line-height: 1.1;
+      font-weight: 700;
+      color: var(--link);
+      letter-spacing: -0.04em;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: clamp(1.2rem, 1.8vw, 2rem);
+      line-height: 1.5;
+      color: var(--muted);
     }
   </style>
 </head>
@@ -56,20 +80,20 @@
   <div class="container">
     <h1>Statistics Homework Blog</h1>
 
-    <div class="card">
-      <h2><a href="homework1.html">Homework 1</a></h2>
+    <a class="card" href="homework1.html">
+      <h2>Homework 1</h2>
       <p>Descrizione del compito 1.</p>
-    </div>
+    </a>
 
-    <div class="card">
-      <h2><a href="homework2.html">Homework 2</a></h2>
+    <a class="card" href="homework2.html">
+      <h2>Homework 2</h2>
       <p>Descrizione del compito 2.</p>
-    </div>
+    </a>
 
-    <div class="card">
-      <h2><a href="homework3.html">Homework 3</a></h2>
+    <a class="card" href="homework3.html">
+      <h2>Homework 3</h2>
       <p>Descrizione del compito 3.</p>
-    </div>
+    </a>
   </div>
 </body>
 </html>
