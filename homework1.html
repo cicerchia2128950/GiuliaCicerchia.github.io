@@ -1,113 +1,128 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Homework 1.1</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homework 1.1 - Public-Key Cryptography</title>
   <style>
-    :root {
-      --bg: #f1f1f1;
-      --panel: #ffffff;
-      --border: #dfe3ea;
-      --text: #1f2430;
-      --muted: #5a6472;
-      --blue: #1f7ae0;
-      --soft: #f7f9ff;
+    :root{
+      --bg:#f3f4f6;
+      --panel:#ffffff;
+      --ink:#1f2430;
+      --muted:#5f6875;
+      --border:#dfe5f1;
+      --blue:#1d7ae0;
+      --green:#2b9d69;
+      --red:#d75a5a;
+      --soft:#f6f9ff;
     }
 
     * { box-sizing: border-box; }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
       font-family: Arial, Helvetica, sans-serif;
-      line-height: 1.7;
+      line-height:1.7;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 40px 20px 80px;
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:40px 22px 80px;
     }
 
-    .paper {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px 32px;
+    .paper{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 10px 24px rgba(15,23,42,0.04);
+      padding:36px 28px 42px;
     }
 
-    h1 {
-      margin: 0 0 16px 0;
-      font-size: clamp(2.2rem, 4vw, 3.4rem);
-      letter-spacing: -0.04em;
+    h1{
+      margin:0 0 16px;
+      font-size:2.6rem;
+      letter-spacing:-0.04em;
+      line-height:1.1;
     }
 
-    h2 {
-      margin-top: 30px;
-      font-size: 1.4rem;
-      color: var(--text);
+    h2{
+      margin-top:30px;
+      font-size:1.3rem;
+      color:var(--ink);
     }
 
-    p, li {
-      color: var(--muted);
-      font-size: 1.04rem;
+    p, li{
+      color:var(--muted);
+      font-size:1.04rem;
     }
 
-    .meta {
-      color: var(--muted);
-      font-size: 0.95rem;
-      margin-bottom: 24px;
+    .meta{
+      color:var(--muted);
+      font-size:0.95rem;
+      margin-bottom:18px;
     }
 
-    .box {
-      background: var(--soft);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-      margin: 16px 0 20px;
+    .box{
+      background:var(--soft);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px 18px;
+      margin:18px 0;
     }
 
-    .result {
-      font-weight: 700;
-      color: var(--blue);
-      font-size: 1.06rem;
+    .result{
+      font-weight:700;
+      color:var(--blue);
+      font-size:1.08rem;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
+    table{
+      width:100%;
+      border-collapse:collapse;
+      border:1px solid var(--border);
+      margin-top:14px;
+      border-radius:12px;
+      overflow:hidden;
     }
 
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      font-size: 0.98rem;
+    th, td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      font-size:0.98rem;
     }
 
-    th {
-      background: #f4f7ff;
+    th{
+      background:#f3f7ff;
     }
 
-    .btn {
-      display: inline-block;
-      margin-top: 22px;
-      background: var(--blue);
-      color: white;
-      text-decoration: none;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-weight: 700;
+    canvas{
+      display:block;
+      width:100%;
+      max-width:760px;
+      height:440px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#ffffff;
+      margin:18px 0 24px;
     }
 
-    .btn:hover {
-      background: #1769c9;
+    .btn{
+      display:inline-block;
+      margin-top:18px;
+      background:var(--blue);
+      color:#fff;
+      text-decoration:none;
+      padding:10px 18px;
+      border-radius:10px;
+      font-weight:700;
+    }
+
+    .btn:hover{
+      background:#1668c6;
     }
   </style>
 </head>
@@ -115,11 +130,13 @@
   <div class="container">
     <div class="paper">
       <h1>Homework 1.1</h1>
-      <div class="meta">Public-Key Cryptography and Elliptic Curve Scalar Multiplication</div>
+      <div class="meta">Public-Key Cryptography and Elliptic-Curve Scalar Multiplication</div>
 
       <p>
-        In Ethereum, the relevant elliptic curve is <strong>secp256k1</strong>. For this toy exercise,
-        we use a smaller curve to understand the core idea behind public-key cryptography.
+        Elliptic-curve cryptography is based on the idea that a private key <strong>k</strong> can be
+        transformed into a public key <strong>Q = kG</strong>, where <strong>G</strong> is a base point
+        on the curve. The operation is easy to compute in the forward direction, but recovering <strong>k</strong>
+        from <strong>Q</strong> is computationally difficult.
       </p>
 
       <div class="box">
@@ -128,20 +145,45 @@
         <strong>Private key:</strong> k = 6
       </div>
 
-      <h2>Obiettivo</h2>
+      <h2>1. Obiettivo</h2>
       <p>
-        The goal is to understand how a private key is transformed into a public key through elliptic-curve
-        scalar multiplication. The main idea is that <strong>Q = kG</strong> is easy to compute but hard
-        to invert.
+        The goal of this exercise is to understand the basic mechanism behind elliptic-curve
+        scalar multiplication in a toy setting. The idea is the same used in real systems such as Ethereum,
+        even if here the curve and the key are much smaller.
       </p>
 
-      <h2>Metodologia</h2>
+      <h2>2. Curve and valid points</h2>
       <p>
-        We use a toy elliptic curve and a small base point. By repeatedly adding the point G to itself,
-        we obtain the sequence G, 2G, 3G, ..., kG. The final point is the public key.
+        We work over the finite field <strong>F₁₇</strong>, so all arithmetic is done modulo 17.
+        The valid points on the curve are:
       </p>
 
-      <h2>Calcoli</h2>
+      <div class="box" id="pointList"></div>
+
+      <h2>3. Point addition</h2>
+      <p>
+        The key operation is point addition on the curve. For two points P and Q:
+      </p>
+
+      <div class="box">
+        If P ≠ Q: λ = (y₂ - y₁) / (x₂ - x₁) mod 17<br>
+        If P = Q: λ = (3x₁² + a) / (2y₁) mod 17
+      </div>
+
+      <p>
+        In this toy curve, <strong>a = 0</strong>. Then:
+      </p>
+
+      <div class="box">
+        x₃ = λ² - x₁ - x₂ (mod 17)<br>
+        y₃ = λ(x₁ - x₃) - y₁ (mod 17)
+      </div>
+
+      <h2>4. Multiples of G</h2>
+      <p>
+        Starting from G = (1,5), we compute G, 2G, 3G, ..., up to 6G:
+      </p>
+
       <table>
         <thead>
           <tr>
@@ -149,35 +191,295 @@
             <th>Point</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td>G</td><td>(1, 5)</td></tr>
-          <tr><td>2G</td><td>(2, 10)</td></tr>
-          <tr><td>3G</td><td>(5, 9)</td></tr>
-          <tr><td>4G</td><td>(12, 1)</td></tr>
-          <tr><td>5G</td><td>(12, 16)</td></tr>
-          <tr><td>6G</td><td>(5, 8)</td></tr>
-        </tbody>
+        <tbody id="multiplesTable"></tbody>
       </table>
 
-      <h2>Risultato finale</h2>
-      <p class="result">
-        Q = 6G = (5, 8)
-      </p>
+      <h2>5. Final public key</h2>
+      <p class="result" id="finalKey"></p>
+
+      <h2>6. Visual representation</h2>
+      <canvas id="curveCanvas" width="760" height="440"></canvas>
 
       <p>
-        This is the toy public key. In real systems, the numbers are much larger, but the same principle
-        is used in Ethereum and other blockchain systems.
+        In the graph, the blue points are the valid points on the curve, and the red path highlights the
+        sequence from G to 6G. This illustrates the idea behind public-key generation in elliptic-curve
+        cryptography.
       </p>
 
-      <h2>Conclusione</h2>
+      <h2>7. Statistical exploration</h2>
       <p>
-        The important idea is that elliptic-curve scalar multiplication is a one-way operation with
-        respect to modern computational assumptions. It allows a private key to generate a public key
-        without exposing the secret scalar itself.
+        We repeat the experiment for several values of the private key k, and we inspect the distribution
+        of the x and y coordinates of the resulting points. This gives us a simple statistical picture of
+        how the outputs behave.
+      </p>
+
+      <canvas id="statsCanvas" width="760" height="300"></canvas>
+
+      <p>
+        The outputs are not all equally frequent, but they do look spread over the curve. For a real
+        cryptographic one-way function, we want outputs to appear unpredictable and to avoid any simple
+        correlation with the input. In contrast, cryptographic hash functions are designed to produce a
+        fixed-length digest with strong diffusion and avalanche properties. They are not the same as
+        public-key generation, even though both are based on mathematical hardness.
+      </p>
+
+      <h2>8. Conclusion</h2>
+      <p>
+        The basic idea is very simple: a private key is a scalar, and the public key is the associated
+        point on the curve obtained through repeated addition. This operation is used in real cryptographic
+        systems such as Ethereum, which uses the secp256k1 curve. The toy example shows the intuition
+        without using the full scale of real-world cryptography.
       </p>
 
       <a class="btn" href="../index.html">Torna alla home</a>
     </div>
   </div>
+
+  <script>
+    const p = 17;
+    const G = { x: 1, y: 5 };
+    const k = 6;
+
+    function modInv(a, m) {
+      let t = 0, newT = 1;
+      let r = m, newR = a % m;
+
+      while (newR !== 0) {
+        const q = Math.floor(r / newR);
+        [t, newT] = [newT, t - q * newT];
+        [r, newR] = [newR, r - q * newR];
+      }
+
+      if (r !== 1) return null;
+      return t < 0 ? t + m : t;
+    }
+
+    function pointEq(P, Q) {
+      if (!P && !Q) return true;
+      if (!P || !Q) return false;
+      return P.x === Q.x && P.y === Q.y;
+    }
+
+    function pointAdd(P, Q) {
+      if (!P) return Q;
+      if (!Q) return P;
+      if (P.x === Q.x && ((P.y + Q.y) % p === 0)) return null;
+
+      let lambda;
+
+      if (pointEq(P, Q)) {
+        if (P.y === 0) return null;
+        lambda = (3 * P.x * P.x) * modInv((2 * P.y) % p, p) % p;
+      } else {
+        const dx = (Q.x - P.x + p) % p;
+        const dy = (Q.y - P.y + p) % p;
+        lambda = (dy * modInv(dx, p)) % p;
+      }
+
+      const x3 = (lambda * lambda - P.x - Q.x) % p;
+      const y3 = (lambda * (P.x - x3) - P.y) % p;
+
+      return {
+        x: (x3 + p) % p,
+        y: (y3 + p) % p
+      };
+    }
+
+    function generateCurvePoints() {
+      const points = [];
+      for (let x = 0; x < p; x++) {
+        const rhs = (x * x * x + 7) % p;
+        for (let y = 0; y < p; y++) {
+          if ((y * y) % p === rhs) {
+            points.push({ x, y });
+          }
+        }
+      }
+      return points;
+    }
+
+    // compute scalar multiples
+    const multiples = [];
+    let current = null;
+
+    for (let i = 1; i <= k; i++) {
+      current = pointAdd(current, G);
+      multiples.push({ step: i, point: current });
+    }
+
+    document.getElementById("finalKey").textContent = `Q = ${k}G = (${multiples[multiples.length - 1].point.x}, ${multiples[multiples.length - 1].point.y})`;
+
+    const points = generateCurvePoints();
+    document.getElementById("pointList").textContent = points.map(pt => `(${pt.x}, ${pt.y})`).join(", ");
+
+    const tableBody = document.getElementById("multiplesTable");
+    multiples.forEach(item => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${item.step}G</td>
+        <td>(${item.point.x}, ${item.point.y})</td>
+      `;
+      tableBody.appendChild(row);
+    });
+
+    // draw curve visualization
+    const curveCanvas = document.getElementById("curveCanvas");
+    const ctx = curveCanvas.getContext("2d");
+    const W = curveCanvas.width;
+    const H = curveCanvas.height;
+    const margin = 36;
+    const sx = (W - 2 * margin) / (p - 1);
+    const sy = (H - 2 * margin) / (p - 1);
+
+    function toCanvas(x, y) {
+      return {
+        x: margin + x * sx,
+        y: H - margin - y * sy
+      };
+    }
+
+    // grid
+    ctx.strokeStyle = "#eaeef7";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < p; i++) {
+      const x = margin + i * sx;
+      const y = margin + i * sy;
+
+      ctx.beginPath();
+      ctx.moveTo(x, margin);
+      ctx.lineTo(x, H - margin);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(margin, y);
+      ctx.lineTo(W - margin, y);
+      ctx.stroke();
+    }
+
+    // all points on curve
+    points.forEach(pt => {
+      const pnt = toCanvas(pt.x, pt.y);
+      ctx.beginPath();
+      ctx.fillStyle = "#1d7ae0";
+      ctx.arc(pnt.x, pnt.y, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // path of multiples
+    const path = multiples.map(m => toCanvas(m.point.x, m.point.y));
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) {
+      ctx.lineTo(path[i].x, path[i].y);
+    }
+    ctx.strokeStyle = "#d75a5a";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    path.forEach((pt, idx) => {
+      const label = idx === 0 ? "G" : `${idx + 1}G`;
+      ctx.beginPath();
+      ctx.fillStyle = "#2b9d69";
+      ctx.arc(pt.x, pt.y, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#1f2430";
+      ctx.font = "12px Arial";
+      ctx.fillText(label, pt.x + 8, pt.y - 10);
+    });
+
+    // statistical exploration
+    const statsCanvas = document.getElementById("statsCanvas");
+    const sctx = statsCanvas.getContext("2d");
+
+    function frequencyMap(items) {
+      const map = {};
+      items.forEach(v => map[v] = (map[v] || 0) + 1);
+      return map;
+    }
+
+    function drawHistogram(map, color, labelY) {
+      const keys = Object.keys(map).map(Number).sort((a,b)=>a-b);
+      const values = keys.map(k => map[k]);
+      const maxVal = Math.max(...values, 1);
+
+      const chartX = 60;
+      const chartY = 40;
+      const chartW = statsCanvas.width - 90;
+      const chartH = statsCanvas.height - 80;
+
+      sctx.fillStyle = "#ffffff";
+      sctx.fillRect(0, 0, statsCanvas.width, statsCanvas.height);
+
+      sctx.strokeStyle = "#dfe5f1";
+      sctx.beginPath();
+      sctx.moveTo(chartX, chartY);
+      sctx.lineTo(chartX, chartY + chartH);
+      sctx.lineTo(chartX + chartW, chartY + chartH);
+      sctx.stroke();
+
+      sctx.fillStyle = "#5f6875";
+      sctx.font = "12px Arial";
+      sctx.fillText(labelY, 10, 25);
+
+      keys.forEach((key, index) => {
+        const x = chartX + (index / keys.length) * chartW;
+        const barWidth = chartW / keys.length * 0.7;
+        const barHeight = (map[key] / maxVal) * chartH;
+        const y = chartY + chartH - barHeight;
+
+        sctx.fillStyle = color;
+        sctx.fillRect(x, y, barWidth, barHeight);
+
+        sctx.fillStyle = "#5f6875";
+        sctx.fillText(String(key), x + 2, chartY + chartH + 18);
+      });
+    }
+
+    const sampleKeys = [];
+    const xCoords = [];
+    const yCoords = [];
+
+    for (let kVal = 1; kVal <= 18; kVal++) {
+      let Q = null;
+      let current = null;
+      for (let i = 1; i <= kVal; i++) {
+        current = pointAdd(current, G);
+        Q = current;
+      }
+      sampleKeys.push(kVal);
+      xCoords.push(Q.x);
+      yCoords.push(Q.y);
+    }
+
+    drawHistogram(frequencyMap(xCoords), "#1d7ae0", "x-coordinate frequency");
+    // second histogram for y
+    sctx.fillStyle = "#ffffff";
+    sctx.fillRect(0, 0, statsCanvas.width, statsCanvas.height);
+
+    drawHistogram(frequencyMap(yCoords), "#2b9d69", "y-coordinate frequency");
+
+    // for a simple summary:
+    const xFreq = frequencyMap(xCoords);
+    const yFreq = frequencyMap(yCoords);
+
+    const summary = `
+      x-values observed: ${Object.keys(xFreq).map(Number).join(", ")}
+      <br>
+      y-values observed: ${Object.keys(yFreq).map(Number).join(", ")}
+    `;
+
+    // little text below chart
+    const smallInfo = document.createElement("div");
+    smallInfo.className = "box";
+    smallInfo.innerHTML = `
+      <strong>Statistical note:</strong>
+      The x and y coordinates are not uniformly distributed in this toy example,
+      because the field is tiny. In real cryptographic systems the field is much larger and the outputs
+      appear far more unpredictable. In hash functions, diffusion and avalanche properties are more
+      important than coordinate frequencies alone.
+    `;
+    document.querySelector(".paper").appendChild(smallInfo);
+  </script>
 </body>
 </html>
