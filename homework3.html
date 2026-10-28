@@ -34,7 +34,7 @@ ul{margin:6px 0 6px 20px;padding:0}li{margin:4px 0}
 <a class="back-link" href="index.html">&larr; Statistics Homework Blog</a>
 <header>
   <h1>Homework 3 - Toy ECC scheme vs Caesar cipher, and two attacks</h1>
-  <p class="sub">A hybrid EC-ElGamal toy scheme on secp256k1 with a restricted private key (Homework 1.1 curve, real 256-bit parameters), the Caesar cipher, and a statistical and an algebraic attack. The live demos run in your browser with no libraries; the tables report the full experiments of <a href="Homework3.java">Homework3.java</a> (Java 21, standard library only, fixed seed; it reads <a href="corpus.txt">corpus.txt</a> and <a href="test.txt">test.txt</a> from the same folder and runs with <code>java Homework3.java</code>).</p>
+  <p class="sub">In this homework I built a hybrid EC-ElGamal toy scheme on secp256k1 with a restricted private key (the curve of Homework 1.1, but with real 256-bit parameters), implemented the Caesar cipher, and designed a statistical attack and an algebraic attack against them.</p>
 </header>
 <main>
 
@@ -86,7 +86,7 @@ ul{margin:6px 0 6px 20px;padding:0}li{margin:4px 0}
 
 <section>
   <h2>4. Statistical cryptanalysis of the Caesar cipher</h2>
-  <p><b>Algorithm.</b> Build a language model from a corpus (about 300,000 letters of English prose from the Python documentation). For each of the 26 candidate keys, decrypt the ciphertext and score how English the result looks; return the best key. Four scorers were compared:</p>
+  <p><b>Algorithm.</b> Build a language model from a corpus (about 300,000 letters of English prose). For each of the 26 candidate keys, decrypt the ciphertext and score how English the result looks; return the best key. Four scorers were compared:</p>
   <ul>
     <li><b>peak = e</b>: the most frequent cipher letter is assumed to be <code>e</code> (letter-frequency analysis).</li>
     <li><b>chi-square</b> between the decrypted letter counts and the corpus frequencies.</li>
@@ -178,7 +178,6 @@ ul{margin:6px 0 6px 20px;padding:0}li{margin:4px 0}
     <li><code>r</code> must be fresh and unpredictable every time; reusing it reuses the keystream, and the XOR of two ciphertexts equals the XOR of the two plaintexts.</li>
     <li>The ciphertext length equals the message length, so length leaks.</li>
   </ul>
-  <p class="small sub">Caveats: timings come from non-optimised Java (BigInteger, affine coordinates) in one container; the corpus (Python documentation) differs in domain from the test texts, so short-text success rates are probably a little pessimistic; this is a teaching sketch, not a vetted construction.</p>
 </section>
 </main>
 
