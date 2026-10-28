@@ -44,14 +44,14 @@
 </head>
 <body>
 <header>
-  <h1>HOMEWORK 1.1 - Toy ECC: PRIVATE KEY &rarr; PUBLIC KEY</h1>
-  <p class="sub">Toy curve <code>y&sup2; = x&sup3; + 7 (mod p)</code> (same form as secp256k1, the curve used by Ethereum, but with a tiny prime p). Public key: <code>Q = k&middot;G</code>.</p>
+  <h1>HOMEWORK 1.1 - Toy ECC: PRIVATE KEY → PUBLIC KEY</h1>
+  <p class="sub">Toy curve <code>y² = x³ + 7 (mod p)</code> (same form as secp256k1, the curve used by Ethereum, but with a tiny prime p). Public key: <code>Q = k·G</code>.</p>
 </header>
 <main>
 
 <section>
   <div class="controls">
-    <label>p (prime, &le; 20011)<input id="p" type="number" value="17"></label>
+    <label>p (prime, ≤ 20011)<input id="p" type="number" value="17"></label>
     <label>G.x<input id="gx" type="number" value="1"></label>
     <label>G.y<input id="gy" type="number" value="5"></label>
     <label>k (private key)<input id="k" type="number" value="6"></label>
@@ -92,15 +92,15 @@
     </div>
     <div>
       <div class="controls" style="margin-bottom:10px">
-        <button id="btnPlay">&#9654; Play</button>
-        <button id="btnStep" class="sec">Step &rsaquo;</button>
-        <button id="btnReset" class="sec">&#10226; Reset</button>
+        <button id="btnPlay">▶ Play</button>
+        <button id="btnStep" class="sec">Step ›</button>
+        <button id="btnReset" class="sec">↺ Reset</button>
         <label>Pause per step<input id="speed" type="range" min="250" max="3000" value="1400"></label>
       </div>
       <div class="info" id="stepinfo">Press "Play" or "Step".</div>
       <p class="sub" style="margin-top:10px;font-size:.85rem">
         Over a finite field there is no continuous "line" through two points: the sum of points is computed with the
-        algebraic formulas (slope &lambda; mod p). This is why the points seem to jump around at random, and it is exactly
+        algebraic formulas (slope λ mod p). This is why the points seem to jump around at random, and it is exactly
         what makes it hard to recover k from Q.
       </p>
       <h3>Brute-force attack (ECDLP in miniature)</h3>
@@ -138,20 +138,20 @@
       <tr><td>Lag-1 autocorrelation of x(kG)</td><td>0.545 (only 8 samples, not significant)</td><td>-0.007</td></tr>
       <tr><td>Symmetry x((n-k)G) = x(kG), y opposite</td><td>8 of 8</td><td>10007 of 10007</td></tr>
       <tr><td>Max bias of a bit from 0.5</td><td>0.500 (tiny sample)</td><td>0.321 (top bit is 1 only 18% of the time)</td></tr>
-      <tr><td>Avalanche on k&rarr;(x,y): curve vs reference hash</td><td>0.489 vs 0.456 (10 output bits)</td><td>0.483 vs 0.500 (28 output bits)</td></tr>
+      <tr><td>Avalanche on k→(x,y): curve vs reference hash</td><td>0.489 vs 0.456 (10 output bits)</td><td>0.483 vs 0.500 (28 output bits)</td></tr>
     </table>
 
     <h3>Interpretation</h3>
     <ul>
-      <li><b>Distribution of x and y.</b> The histograms are essentially flat, but this comes from the algebra and not from "randomness". The map k&rarr;kG is a bijection onto the subgroup, so no point is repeated. Every x appears exactly twice (as +y and -y) and, for p = 10007, every y appears exactly once (because p &equiv; 2 mod 3, the cube map is a bijection). Only about half of the possible x values are ever used (those for which x&sup3;+7 is a quadratic residue), which is why H(x) is one bit below log2 p.</li>
-      <li><b>Bits.</b> The inner bits of x and y are balanced (about 0.50). The top bits are biased because the coordinates lie in [0, p-1] and p is not a power of 2: for p = 10007 &lt; 2<sup>14</sup>, the top bit is 1 only 18% of the time and the next two bits about 41%. This is a property of the encoding, not of the function.</li>
+      <li><b>Distribution of x and y.</b> The histograms are essentially flat, but this comes from the algebra and not from "randomness". The map k→kG is a bijection onto the subgroup, so no point is repeated. Every x appears exactly twice (as +y and -y) and, for p = 10007, every y appears exactly once (because p ≡ 2 mod 3, the cube map is a bijection). Only about half of the possible x values are ever used (those for which x³+7 is a quadratic residue), which is why H(x) is one bit below log2 p.</li>
+      <li><b>Bits.</b> The inner bits of x and y are balanced (about 0.50). The top bits are biased because the coordinates lie in [0, p-1] and p is not a power of 2: for p = 10007 < 2<sup>14</sup>, the top bit is 1 only 18% of the time and the next two bits about 41%. This is a property of the encoding, not of the function.</li>
       <li><b>Correlation between input and output.</b> For p = 10007 the linear correlations between k and x or y and the lag-1 autocorrelation are all below 0.01 in absolute value: nearby private keys give public keys that look unrelated. The values for p = 17 are not meaningful because there are only 8 points. However, the scatter plot of k vs x is not structureless: it is mirror-symmetric around n/2 because x((n-k)G) = x(kG).</li>
-      <li><b>Avalanche-like behaviour.</b> Flipping one bit of k changes about 48% of the output bits, close to the ideal 50% of a good hash (0.483 vs 0.500 for the reference mixing function). This must be read with care. Flipping bit i changes k by &plusmn;2<sup>i</sup>, so Q changes to Q &plusmn; 2<sup>i</sup>G, an exact algebraic relation that anyone can compute. The coordinates look very different, but the relation between the two outputs is fully known (the function is a group homomorphism). The apparent avalanche is therefore a consequence of the coordinates looking pseudo-random, not a design property.</li>
+      <li><b>Avalanche-like behaviour.</b> Flipping one bit of k changes about 48% of the output bits, close to the ideal 50% of a good hash (0.483 vs 0.500 for the reference mixing function). This must be read with care. Flipping bit i changes k by ±2<sup>i</sup>, so Q changes to Q ± 2<sup>i</sup>G, an exact algebraic relation that anyone can compute. The coordinates look very different, but the relation between the two outputs is fully known (the function is a group homomorphism). The apparent avalanche is therefore a consequence of the coordinates looking pseudo-random, not a design property.</li>
     </ul>
 
     <h3>Which properties matter for a cryptographic one-way function</h3>
     <ul>
-      <li><b>Easy forward, hard backward.</b> Q = kG costs O(log k) group operations (double-and-add), while recovering k from Q is the Elliptic Curve Discrete Logarithm Problem. The best generic attacks need about &radic;n steps. Here the brute-force button finds k instantly because n &le; 10<sup>4</sup>; for secp256k1, n &asymp; 2<sup>256</sup> and &radic;n &asymp; 10<sup>38</sup>.</li>
+      <li><b>Easy forward, hard backward.</b> Q = kG costs O(log k) group operations (double-and-add), while recovering k from Q is the Elliptic Curve Discrete Logarithm Problem. The best generic attacks need about √n steps. Here the brute-force button finds k instantly because n ≤ 10<sup>4</sup>; for secp256k1, n ≈ 2<sup>256</sup> and √n ≈ 10<sup>38</sup>.</li>
       <li><b>Determinism and pseudo-random-looking output</b> inside the subgroup (no useful statistical relation between k and Q): the statistics above are meaningful as a sanity check for this.</li>
       <li><b>Injectivity</b> for k in [1, n-1]: different private keys always give different public keys.</li>
       <li><b>Algebraic structure</b>, (k1+k2)G = k1G + k2G, is not a weakness here; it is exactly what makes digital signatures, ECDH and key derivation possible.</li>
@@ -160,7 +160,7 @@
     <h3>Properties specific to cryptographic hash functions</h3>
     <ul>
       <li><b>Compression:</b> arbitrary-length input to fixed-length output, so collisions must exist but be infeasible to find (collision resistance, second-preimage resistance). kG has no collisions on [1, n-1] and takes a number, not an arbitrary message.</li>
-      <li><b>A strict avalanche effect</b> with no exploitable relation between outputs. In kG the relation Q' = Q &plusmn; 2<sup>i</sup>G is public.</li>
+      <li><b>A strict avalanche effect</b> with no exploitable relation between outputs. In kG the relation Q' = Q ± 2<sup>i</sup>G is public.</li>
       <li><b>No algebraic structure.</b> A hash must not be homomorphic or have symmetries such as x(kG) = x(-kG).</li>
       <li><b>Uniformity over the whole output space.</b> The output of kG is a curve point, so only about half of the (x, y) space is occupied and every output satisfies the curve equation.</li>
     </ul>
@@ -168,7 +168,7 @@
     <h3>Conclusion and caveats</h3>
     <ul>
       <li>Scalar multiplication behaves like a one-way function because of the ECDLP, not because of hash-like mixing. Statistical tests (uniformity, correlation, avalanche) can only show that the outputs look random; they say nothing about the hardness of inverting the map.</li>
-      <li>For p &equiv; 2 (mod 3), such as 17 and 10007, the curve y&sup2; = x&sup3; + 7 is supersingular with exactly p + 1 points, which is why n = 10008. secp256k1 has p &equiv; 1 (mod 3) and is an ordinary curve. This toy is for understanding the mechanics only and is not secure.</li>
+      <li>For p ≡ 2 (mod 3), such as 17 and 10007, the curve y² = x³ + 7 is supersingular with exactly p + 1 points, which is why n = 10008. secp256k1 has p ≡ 1 (mod 3) and is an ordinary curve. This toy is for understanding the mechanics only and is not secure.</li>
       <li>For tiny groups the statistical tests have little power (8 samples for p = 17), so the p = 10007 results are the more reliable ones.</li>
     </ul>
   </div>
@@ -181,7 +181,7 @@
 // ============================================================
 const A_COEF = 0, B_COEF = 7;
 function mod(a, p) { return ((a % p) + p) % p; }
-function inv(a, p) {                       // modular inverse (extended Euclid)
+function inv(a, p) {
   a = mod(a, p);
   let t = 0, nt = 1, r = p, nr = a;
   while (nr) {
@@ -202,17 +202,16 @@ function onCurve(P, p) {
 }
 function same(P, Q) { return (!P && !Q) || (P && Q && P.x === Q.x && P.y === Q.y); }
 
-// point addition: returns {R, lam, type}
 function addPts(P, Q, p) {
   if (!P) return { R: Q, type: "id" };
   if (!Q) return { R: P, type: "id" };
   let lam, type;
   if (P.x === Q.x) {
     if (mod(P.y + Q.y, p) === 0) return { R: null, type: "inf" };
-    lam = mod(mod(3 * P.x * P.x + A_COEF, p) * inv(2 * P.y, p), p);   // doubling: tangent
+    lam = mod(mod(3 * P.x * P.x + A_COEF, p) * inv(2 * P.y, p), p);
     type = "dbl";
   } else {
-    lam = mod(mod(Q.y - P.y, p) * inv(Q.x - P.x, p), p);              // addition: secant
+    lam = mod(mod(Q.y - P.y, p) * inv(Q.x - P.x, p), p);
     type = "add";
   }
   const x3 = mod(lam * lam - P.x - Q.x, p);
@@ -220,7 +219,6 @@ function addPts(P, Q, p) {
   return { R: { x: x3, y: y3 }, lam, type };
 }
 
-// subgroup generated by G: pts[i] = i*G for i = 0..n-1 (pts[0] = infinity); n = order
 function subgroup(G, p) {
   const pts = [null, G];
   let R = G;
@@ -234,7 +232,6 @@ function subgroup(G, p) {
   return { n: pts.length, pts };
 }
 
-// steps to compute kG. mode: "naive" (G,2G,3G,...) or "dbl" (double-and-add)
 function buildSteps(k, G, p, mode) {
   const steps = [];
   let R = G, m = 1;
@@ -263,7 +260,6 @@ function buildSteps(k, G, p, mode) {
   return { steps, result: R };
 }
 
-// all affine points of the curve (for drawing)
 function allCurvePoints(p) {
   const sq = new Map();
   for (let y = 0; y < p; y++) {
@@ -279,9 +275,6 @@ function allCurvePoints(p) {
   return res;
 }
 
-// ============================================================
-// STATISTICAL HELPERS
-// ============================================================
 function popcount(v) { let c = 0; v = v >>> 0; while (v) { c += v & 1; v >>>= 1; } return c; }
 function bitlen(v) { return Math.max(1, v.toString(2).length); }
 function pearson(a, b) {
@@ -297,24 +290,18 @@ function entropy(counts, total) {
   for (const c of counts) if (c) { const q = c / total; h -= q * Math.log2(q); }
   return h;
 }
-function fmix32(h) {                 // MurmurHash3 finalizer: simple reference mixing function
+function fmix32(h) {
   h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
   h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
   h ^= h >>> 16; return h >>> 0;
 }
 
-// ============================================================
-// STATE AND DOM
-// ============================================================
 const $ = id => document.getElementById(id);
 const S = { p: 17, G: { x: 1, y: 5 }, k: 6, kEff: 6, mode: "naive", sg: null, steps: [], idx: 0, curve: [], timer: null, Q: null };
 
 function ptStr(P) { return P ? `(${P.x}, ${P.y})` : "∞"; }
 function setErr(msg) { $("err").textContent = msg || ""; }
 
-// ============================================================
-// RUN: read parameters, compute, refresh everything
-// ============================================================
 function run() {
   stop();
   setErr("");
@@ -340,19 +327,15 @@ function run() {
   S.Q = kEff === n ? null : sg.pts[kEff];
   const check = kEff === n ? true : same(built.result, S.Q);
 
-  // --- 1. result
   $("pubkey").innerHTML = `TOY PUBLIC KEY &nbsp; Q = ${k}&middot;G = ${ptStr(S.Q)}`;
   $("curveinfo").innerHTML =
-    `Curve y&sup2; = x&sup3; + 7 (mod ${p}) &middot; affine points: ${S.curve.length} (+infinity = ${S.curve.length + 1}) &middot; G = ${ptStr(G)} &middot; order of G: <b>n = ${n}</b> &middot; ` +
+    `Curve y² = x³ + 7 (mod ${p}) &middot; affine points: ${S.curve.length} (+infinity = ${S.curve.length + 1}) &middot; G = ${ptStr(G)} &middot; order of G: <b>n = ${n}</b> &middot; ` +
     `check successive additions = double-and-add: <b class="${check ? "good" : "warnc"}">${check ? "OK" : "ERROR"}</b>` + (note ? `<br><span class="warnc">${note}</span>` : "");
   renderList(kEff, n);
 
-  // --- 2. drawing
   $("stepinfo").innerHTML = S.steps.length ? "Press \"Play\" or \"Step\"." : "k = 1: the public key equals G, there are no steps to show.";
   $("bruteout").textContent = "";
   drawMain();
-
-  // --- 3. statistics
   computeStats();
 }
 
@@ -375,16 +358,12 @@ function renderList(kEff, n) {
   $("list").textContent = lines.join("\n");
 }
 
-// ============================================================
-// DRAWING (canvas) + ANIMATION
-// ============================================================
 function drawMain() {
   const cv = $("cv"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height, M = 38, p = S.p;
   const cell = (W - 2 * M) / (p - 1);
   const X = x => M + x * cell, Y = y => H - M - y * cell;
   ctx.clearRect(0, 0, W, H);
 
-  // grid and axes
   ctx.strokeStyle = "#1d2740"; ctx.lineWidth = 1; ctx.fillStyle = "#8d98b0"; ctx.font = "10px sans-serif";
   const tick = p <= 40 ? 1 : Math.ceil(p / 12);
   ctx.textAlign = "center";
@@ -396,7 +375,6 @@ function drawMain() {
   }
   ctx.fillText("x", W - 12, H - M + 16); ctx.fillText("y", M - 24, 14);
 
-  // curve points
   const r = Math.max(1.4, Math.min(5, cell * 0.26));
   ctx.fillStyle = "#4a5878";
   for (const P of S.curve) { ctx.beginPath(); ctx.arc(X(P.x), Y(P.y), r, 0, 7); ctx.fill(); }
@@ -418,12 +396,10 @@ function drawMain() {
     ctx.lineTo(hx - 9 * Math.cos(ang + 0.4), hy - 9 * Math.sin(ang + 0.4)); ctx.closePath(); ctx.fill();
   };
 
-  // multiples already computed
   const done = S.steps.slice(0, S.idx);
   for (const s of done) if (s.R) { dot(s.R, "#ffb454", r + 1.5); label(s.R, s.mult + "G", "#ffb454", false); }
-  // G
   dot(S.G, "#4da3ff", r + 2.5); label(S.G, "G", "#4da3ff", true);
-  // current step
+
   if (done.length) {
     const s = done[done.length - 1];
     if (s.A) { ring(s.A, "#43d19e", r + 6); }
@@ -431,7 +407,7 @@ function drawMain() {
     if (s.R) { arrow(s.A, s.R, "#43d19e"); if (s.type === "add") arrow(s.B, s.R, "#b58cff"); dot(s.R, "#ff6b6b", r + 3.5); label(s.R, s.mult + "G", "#ff6b6b", true); }
     if (s.A) label(s.A, s.mA + "G", "#43d19e", true);
   }
-  // final public key
+
   if (S.idx === S.steps.length && S.Q && S.steps.length) {
     ctx.strokeStyle = "#43d19e"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(S.Q.x), Y(S.Q.y), r + 9, 0, 7); ctx.stroke();
     ctx.fillStyle = "#43d19e"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "left";
@@ -441,17 +417,15 @@ function drawMain() {
 
 function describeStep(s, i) {
   const p = S.p;
-  const op = s.type === "dbl"
-    ? `<b>doubling</b> ${s.mA}G + ${s.mA}G`
-    : `<b>addition</b> ${s.mA}G + ${s.mB}G`;
+  const op = s.type === "dbl" ? `<b>doubling</b> ${s.mA}G + ${s.mA}G` : `<b>addition</b> ${s.mA}G + ${s.mB}G`;
   let html = `Step ${i}/${S.steps.length} &middot; ${op} &rarr; <b>${s.mult}G</b><br>`;
   html += `A = ${ptStr(s.A)}, B = ${ptStr(s.B)}<br>`;
   if (!s.R) return html + "result: point at infinity";
   if (s.type === "dbl")
-    html += `&lambda; = 3x&sup2;/(2y) = 3&middot;${s.A.x}&sup2; / (2&middot;${s.A.y}) = <b>${s.lam}</b> (mod ${p})<br>`;
+    html += `&lambda; = 3x²/(2y) = 3&middot;${s.A.x}² / (2&middot;${s.A.y}) = <b>${s.lam}</b> (mod ${p})<br>`;
   else
-    html += `&lambda; = (y&#8322;-y&#8321;)/(x&#8322;-x&#8321;) = (${s.B.y}-${s.A.y})/(${s.B.x}-${s.A.x}) = <b>${s.lam}</b> (mod ${p})<br>`;
-  html += `x&#8323; = &lambda;&sup2; - x&#8321; - x&#8322; = ${s.R.x}<br>y&#8323; = &lambda;(x&#8321; - x&#8323;) - y&#8321; = ${s.R.y}<br>`;
+    html += `&lambda; = (y₂-y₁)/(x₂-x₁) = (${s.B.y}-${s.A.y})/(${s.B.x}-${s.A.x}) = <b>${s.lam}</b> (mod ${p})<br>`;
+  html += `x₃ = &lambda;² - x₁ - x₂ = ${s.R.x}<br>y₃ = &lambda;(x₁ - x₃) - y₁ = ${s.R.y}<br>`;
   html += `<span class="good">&rArr; ${s.mult}G = ${ptStr(s.R)}</span>`;
   if (S.idx === S.steps.length) html += `<br><br><b class="good">DONE: TOY PUBLIC KEY Q = ${S.kEff}&middot;G = ${ptStr(S.Q)}</b>`;
   return html;
@@ -467,14 +441,14 @@ function step() {
 function play() {
   stop();
   if (S.idx >= S.steps.length) { S.idx = 0; drawMain(); }
-  $("btnPlay").innerHTML = "&#10074;&#10074; Pause";
+  $("btnPlay").innerHTML = "❚❚ Pause";
   const tick = () => {
     if (step()) S.timer = setTimeout(tick, +$("speed").value);
     else stop();
   };
   S.timer = setTimeout(tick, 300);
 }
-function stop() { clearTimeout(S.timer); S.timer = null; $("btnPlay").innerHTML = "&#9654; Play"; }
+function stop() { clearTimeout(S.timer); S.timer = null; $("btnPlay").innerHTML = "▶ Play"; }
 function resetAnim() { stop(); S.idx = 0; $("stepinfo").innerHTML = "Press \"Play\" or \"Step\"."; drawMain(); }
 
 function brute() {
@@ -483,7 +457,7 @@ function brute() {
   let R = S.G, i = 1;
   while (!same(R, S.Q) && i < S.sg.n) { R = addPts(R, S.G, S.p).R; i++; }
   const dt = (performance.now() - t0).toFixed(2);
-  $("bruteout").innerHTML = `Found k = <b>${i}</b> after ${i} additions (${dt} ms). With n = ${S.sg.n} this is trivial; for secp256k1 (n &asymp; 2<sup>256</sup> &asymp; 1.2&middot;10<sup>77</sup>) about &radic;n &asymp; 10<sup>38</sup> operations would be needed even with the best generic algorithms.`;
+  $("bruteout").innerHTML = `Found k = <b>${i}</b> after ${i} additions (${dt} ms). With n = ${S.sg.n} this is trivial; for secp256k1 (n ≈ 2<sup>256</sup> ≈ 1.2·10<sup>77</sup>) about √n ≈ 10<sup>38</sup> operations would be needed even with the best generic algorithms.`;
 }
 
 // ============================================================
@@ -531,24 +505,19 @@ function scatter(cv, xs, ys, xmax, ymax, color) {
   }
 }
 
-// ============================================================
-// STATISTICS
-// ============================================================
 function computeStats() {
   const { p, sg } = S, n = sg.n, pts = sg.pts;
-  const bw = bitlen(p - 1);
-  const xs = [], ys = [], ks = [];
-  for (let k = 1; k < n; k++) { xs.push(pts[k].x); ys.push(pts[k].y); ks.push(k); }
-  const N = xs.length;
+  const N = n - 1;
   if (N < 4) { $("metrics").innerHTML = "<p class='warnc'>Subgroup too small for statistics.</p>"; return; }
 
-  // frequencies
+  const xs = [], ys = [], ks = [];
+  for (let k = 1; k < n; k++) { xs.push(pts[k].x); ys.push(pts[k].y); ks.push(k); }
+
   const cx = new Array(p).fill(0), cy = new Array(p).fill(0);
   for (let i = 0; i < N; i++) { cx[xs[i]]++; cy[ys[i]]++; }
   const usedX = cx.filter(c => c > 0), usedY = cy.filter(c => c > 0);
   const Hx = entropy(cx, N), Hy = entropy(cy, N);
 
-  // binned histograms
   const bins = Math.min(p, 64);
   const hx = new Array(bins).fill(0), hy = new Array(bins).fill(0);
   for (let i = 0; i < N; i++) { hx[Math.floor(xs[i] * bins / p)]++; hy[Math.floor(ys[i] * bins / p)]++; }
@@ -556,7 +525,7 @@ function computeStats() {
   barChart($("hx"), hx, { int: true, xlabels: xl, ref: N / bins });
   barChart($("hy"), hy, { int: true, xlabels: xl, ref: N / bins });
 
-  // bits
+  const bw = bitlen(p - 1);
   const bx = new Array(bw).fill(0), by = new Array(bw).fill(0);
   for (let i = 0; i < N; i++) for (let b = 0; b < bw; b++) { bx[b] += (xs[i] >> b) & 1; by[b] += (ys[i] >> b) & 1; }
   const bitFr = [...bx, ...by].map(v => v / N);
@@ -564,7 +533,6 @@ function computeStats() {
   barChart($("hb"), bitFr, { max: 1, ref: 0.5, colors, xlabels: [[0, "x:b0"], [bw - 1, "x:b" + (bw - 1)], [bw, "y:b0"], [2 * bw - 1, "y:b" + (bw - 1)]] });
   const bias = Math.max(...bitFr.map(f => Math.abs(f - 0.5)));
 
-  // avalanche on k -> (x,y)
   const kb = bitlen(n - 1), m = 2 * bw;
   const enc = k => (pts[k].x << bw) | pts[k].y;
   const sumCurve = new Array(kb).fill(0), cntCurve = new Array(kb).fill(0);
@@ -584,7 +552,6 @@ function computeStats() {
   const meanC = avC.reduce((a, b) => a + b, 0) / kb, meanH = avH.reduce((a, b) => a + b, 0) / kb;
   barChart($("av"), avC, { max: 1, ref: 0.5, xlabels: [[0, "bit 0 of k"], [kb - 1, "bit " + (kb - 1)]] });
 
-  // correlations and symmetry
   const rKX = pearson(ks, xs), rKY = pearson(ks, ys);
   const rLag = pearson(xs.slice(0, -1), xs.slice(1));
   let sym = 0;
@@ -592,31 +559,27 @@ function computeStats() {
   scatter($("sx"), ks, xs, n, p, "#4da3ff");
   scatter($("sy"), ks, ys, n, p, "#b58cff");
 
-  // metrics table
-  const row = (a, b, c = "") => `<tr><td>${a}</td><td>${b}</td><td class="sub">${c}</td></tr>`;
   $("metrics").innerHTML = `<table>
     <tr><th>Property</th><th>Measured value</th><th>Comment</th></tr>
-    ${row("Order n of the subgroup generated by G", `<b>${n}</b>`, `points kG for k=1...${n - 1}: ${N}`)}
-    ${row("Distinct x values used", `${usedX.length} of ${p}`, `frequency min/max: ${Math.min(...usedX)} / ${Math.max(...usedX)} (usually 2: +y and -y)`)}
-    ${row("Distinct y values used", `${usedY.length} of ${p}`, `frequency min/max: ${Math.min(...usedY)} / ${Math.max(...usedY)}`)}
-    ${row("Shannon entropy H(x), H(y)", `${Hx.toFixed(3)}, ${Hy.toFixed(3)} bit`, `theoretical maximum log2(p) = ${Math.log2(p).toFixed(3)} bit`)}
-    ${row("Maximum bit bias", bias.toFixed(3), "|freq(bit=1) - 0.5|: top bits are unbalanced when p is not a power of 2")}
-    ${row("Pearson correlation r(k, x)", rKX.toFixed(3), "close to 0 = no linear dependence")}
-    ${row("Pearson correlation r(k, y)", rKY.toFixed(3), "")}
-    ${row("Lag-1 autocorrelation of x(kG)", rLag.toFixed(3), "x(kG) vs x((k+1)G)")}
-    ${row("Symmetry x((n-k)G) = x(kG), y opposite", `${sym} / ${n - 1} values of k`, "algebraic structure: a hash should NOT have it")}
-    ${row("Average avalanche on kG", `<b>${meanC.toFixed(3)}</b> (ideal 0.5)`, `output bits = ${m} (x,y on ${bw} bits each)`)}
-    ${row("Average avalanche of reference hash (fmix32)", `<b>${meanH.toFixed(3)}</b>`, "MurmurHash3 mixing function truncated to the same number of bits")}
+    <tr><td>Order n of the subgroup generated by G</td><td><b>${n}</b></td><td>points kG for k=1...${n - 1}: ${N}</td></tr>
+    <tr><td>Distinct x values used</td><td>${usedX.length} of ${p}</td><td>frequency min/max: ${Math.min(...usedX)} / ${Math.max(...usedX)} (usually 2: +y and -y)</td></tr>
+    <tr><td>Distinct y values used</td><td>${usedY.length} of ${p}</td><td>frequency min/max: ${Math.min(...usedY)} / ${Math.max(...usedY)}</td></tr>
+    <tr><td>Shannon entropy H(x), H(y)</td><td>${Hx.toFixed(3)}, ${Hy.toFixed(3)} bit</td><td>theoretical maximum log2(p) = ${Math.log2(p).toFixed(3)} bit</td></tr>
+    <tr><td>Maximum bit bias</td><td>${bias.toFixed(3)}</td><td>|freq(bit=1) - 0.5|</td></tr>
+    <tr><td>Pearson correlation r(k, x)</td><td>${rKX.toFixed(3)}</td><td>close to 0 = no linear dependence</td></tr>
+    <tr><td>Pearson correlation r(k, y)</td><td>${rKY.toFixed(3)}</td><td></td></tr>
+    <tr><td>Lag-1 autocorrelation of x(kG)</td><td>${rLag.toFixed(3)}</td><td>x(kG) vs x((k+1)G)</td></tr>
+    <tr><td>Symmetry x((n-k)G) = x(kG), y opposite</td><td>${sym} / ${n - 1} values of k</td><td>algebraic structure: a hash should NOT have it</td></tr>
+    <tr><td>Average avalanche on kG</td><td><b>${meanC.toFixed(3)}</b> (ideal 0.5)</td><td>output bits = ${m} (x,y on ${bw} bits each)</td></tr>
+    <tr><td>Average avalanche of reference hash</td><td><b>${meanH.toFixed(3)}</b></td><td>MurmurHash3 mixing function truncated to same bit count</td></tr>
   </table>`;
 }
 
-// ============================================================
-// EVENTS
-// ============================================================
+// events
 function findBase(p) {
   for (const P of allCurvePoints(p)) if (P.x > 0 && P.y > 0) {
     const n = subgroup(P, p).n;
-    if (n > 0.8 * (p + 1)) return P;    // prefer a point that generates (almost) the whole group
+    if (n > 0.8 * (p + 1)) return P;
   }
   return allCurvePoints(p)[0];
 }
