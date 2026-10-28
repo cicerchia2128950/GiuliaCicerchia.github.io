@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homework 4 - Penetration process: LLN and CLT with n systems and m attackers</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--ink:#e6eaf2;--mute:#8d98b0;--acc:#4da3ff;--ok:#43d19e;--warn:#ffb454;--bad:#ff6b6b;--vio:#b58cff;--line:#2a3550}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Segoe UI",Roboto,sans-serif}
+header,main{max-width:1180px;margin:0 auto;padding:16px 20px}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 10px;color:var(--acc)}h3{font-size:1rem;margin:16px 0 6px}
+.sub{color:var(--mute);margin:0}a{color:var(--acc)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0;overflow-x:auto}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:10px 0}
+label{display:flex;flex-direction:column;font-size:.8rem;color:var(--mute);gap:3px}
+input,select{background:#0f1626;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 8px;font:inherit;width:100px}
+select{width:auto}
+button{background:var(--acc);color:#04101f;border:0;border-radius:6px;padding:7px 14px;font:inherit;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.12)}button:disabled{opacity:.5;cursor:wait}
+.err{color:var(--bad);min-height:1.2em}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0c111d;padding:1px 5px;border-radius:4px;font-size:.88em}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+td,th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+th{color:var(--mute);font-weight:600}
+ul{margin:6px 0 6px 20px;padding:0}li{margin:4px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-top:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:10px}
+.card{background:#0c111d;border:1px solid var(--line);border-radius:8px;padding:8px}
+.card h3{margin:2px 4px 6px;font-size:.84rem;color:var(--mute);font-weight:600}
+canvas{width:100%;height:auto;display:block}
+.good{color:var(--ok)}.warnc{color:var(--warn)}.small{font-size:.85rem}
+.back-link{display:inline-block;margin:18px 0 0 18px;padding:6px 10px;color:#e6eaf2;text-decoration:none;font-weight:600;border-radius:6px;background:rgba(255,255,255,.02)}
+.back-link:hover{text-decoration:underline;background:rgba(255,255,255,.04)}
+</style>
+</head>
+<body>
+<a class="back-link" href="index.html">&larr; Statistics Homework Blog</a>
+<header>
+  <h1>Homework 4 - Penetration process: LLN and CLT with n systems and m attackers</h1>
+  <p class="sub">Random walk with i.i.d. increments <code>X<sub>1</sub>, X<sub>2</sub>, ...</code> as a model of the penetration score. Everything below is simulated in your browser.</p>
+</header>
+<main>
+
+<section>
+  <h2>1. The model</h2>
+  <ul>
+    <li><b>Systems and attackers.</b> There are <code>n</code> systems. An attacker goes through them one after the other and <code>X<sub>i</sub></code> is the penetration score obtained on the i-th system. The <code>m</code> attackers are independent, so each one gives one sample trajectory <code>S<sub>1</sub>, S<sub>2</sub>, ..., S<sub>n</sub></code> of the same process.</li>
+    <li><b>Bernoulli model.</b> <code>X<sub>i</sub> &isin; {0,1}</code>, <code>P(X<sub>i</sub>=1)=p</code>: the system is penetrated or not. <code>&mu;=p</code>, <code>&sigma;&sup2;=p(1-p)</code>. <code>S<sub>n</sub></code> is the number of penetrated systems.</li>
+    <li><b>Rademacher model.</b> <code>X<sub>i</sub> &isin; {-1,+1}</code> with probability 1/2 each: the symmetric case where the attacker gains or loses ground with the same probability. <code>&mu;=0</code>, <code>&sigma;&sup2;=1</code>.</li>
+    <li><b>Three quantities.</b> Total score <code>S<sub>n</sub>=&Sigma;X<sub>i</sub></code>, average score <code>S<sub>n</sub>/n</code>, normalized total score <code>S<sub>n</sub>/&radic;n</code>. In general <code>E[S<sub>n</sub>]=n&mu;</code> and <code>Var(S<sub>n</sub>)=n&sigma;&sup2;</code>, so <code>Var(S<sub>n</sub>/n)=&sigma;&sup2;/n</code> and <code>Var(S<sub>n</sub>/&radic;n)=&sigma;&sup2;</code>: only the last one has a variance that neither explodes nor vanishes.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>2. Simulation</h2>
+  <div class="controls">
+    <label>Model<select id="model"><option value="rad">Rademacher (&plusmn;1)</option><option value="ber">Bernoulli (0/1)</option></select></label>
+    <label>p (Bernoulli)<input id="p" type="number" step="0.05" min="0.01" max="0.99" value="0.3"></label>
+    <label>n (max, systems)<input id="N" type="number" min="10" max="50000" value="10000"></label>
+    <label>m (attackers)<input id="m" type="number" min="20" max="3000" value="1000"></label>
+    <label>&epsilon; (for LLN)<input id="eps" type="number" step="0.01" min="0.005" max="1" value="0.1"></label>
+    <label>Seed<input id="seed" type="number" value="42"></label>
+    <button id="btn">Simulate</button>
+  </div>
+  <div class="err" id="err"></div>
+  <div class="sub small" id="info"></div>
+</section>
+
+<section>
+  <h2>3. Sample trajectories (8 of the m attackers)</h2>
+  <p class="sub small">Horizontal axis: number of systems attacked k (log scale). Shaded bands are the theoretical &plusmn;2&sigma; ranges, the dashed line the theoretical mean.</p>
+  <div class="grid">
+    <div class="card"><h3>Total score S<sub>k</sub> (band: k&mu; &plusmn; 2&sigma;&radic;k)</h3><canvas id="p1" width="520" height="260"></canvas></div>
+    <div class="card"><h3>Average score S<sub>k</sub>/k (band: &mu; &plusmn; 2&sigma;/&radic;k)</h3><canvas id="p2" width="520" height="260"></canvas></div>
+    <div class="card"><h3>Normalized score S<sub>k</sub>/&radic;k (band: &mu;&radic;k &plusmn; 2&sigma;)</h3><canvas id="p3" width="520" height="260"></canvas></div>
+  </div>
+</section>
+
+<section>
+  <h2>4. Distributions across the m attackers</h2>
+  <h3>Average score S<sub>n</sub>/n (same horizontal range in all panels: it shrinks around &mu;)</h3>
+  <div class="grid4" id="ha"></div>
+  <h3>Standardized score (S<sub>n</sub> &minus; n&mu;)/(&sigma;&radic;n), equal to S<sub>n</sub>/&radic;n in the Rademacher case, against N(0,1)</h3>
+  <div class="grid4" id="hw"></div>
+</section>
+
+<section>
+  <h2>5. Law of Large Numbers, variance and CLT as n grows</h2>
+  <div class="grid">
+    <div class="card"><h3>LLN: fraction of attackers with |S<sub>n</sub>/n &minus; &mu;| &gt; &epsilon; (orange: Chebyshev bound &sigma;&sup2;/(n&epsilon;&sup2;))</h3><canvas id="lln" width="520" height="260"></canvas></div>
+    <div class="card"><h3>Empirical variance of the three quantities, divided by their theoretical value (should be about 1)</h3><canvas id="var" width="520" height="260"></canvas></div>
+    <div class="card"><h3>CLT: Kolmogorov distance between the standardized score and N(0,1) (dashed: sampling noise level for m attackers)</h3><canvas id="ks" width="520" height="260"></canvas></div>
+  </div>
+  <div id="tab" style="margin-top:12px"></div>
+</section>
+
+<section>
+  <h2>6. Interpretation</h2>
+  <ul>
+    <li><b>Law of Large Numbers (S<sub>n</sub>/n).</b> The average score of each attacker converges in probability to &mu;. By Chebyshev, <code>P(|S<sub>n</sub>/n-&mu;|&gt;&epsilon;) &le; &sigma;&sup2;/(n&epsilon;&sup2;)</code>, which goes to 0 as 1/n. The simulated fraction lies below that bound (the bound is not tight: the true decay is exponential, by Hoeffding). With many systems, the success rate of any attacker is essentially deterministic: luck averages out.</li>
+    <li><b>Variance under the three normalizations.</b> <code>S<sub>n</sub></code> has variance growing like n (its typical size is &radic;n in the Rademacher case, so the total score drifts away from 0 but much more slowly than n); <code>S<sub>n</sub>/n</code> has variance &sigma;&sup2;/n &rarr; 0 (the trajectories collapse on &mu;); <code>S<sub>n</sub>/&radic;n</code> keeps variance &sigma;&sup2; for every n. &radic;n is the only scaling that "sees" the fluctuations without making them disappear or blow up.</li>
+    <li><b>Central Limit Theorem (Rademacher).</b> <code>S<sub>n</sub>/&radic;n</code> converges in distribution to N(0,1). The histograms become bell-shaped and the Kolmogorov distance decreases like 1/&radic;n until it hits the noise floor of about 1/&radic;m, due to using only m trajectories. For small n the distribution is lattice-valued (S<sub>n</sub> has the parity of n), which is why the first panels look comb-like.</li>
+    <li><b>Bernoulli with p &ne; 1/2.</b> Here <code>S<sub>n</sub>/&radic;n</code> has mean <code>p&radic;n</code>, which diverges: it needs centering. The standardized version <code>(S<sub>n</sub>-np)/&radic;(np(1-p))</code> converges to N(0,1) too. This shows why the Rademacher case is the clean one: symmetry makes &mu;=0, so no centering is needed.</li>
+    <li><b>Effect of the number of systems n.</b> Larger n means a larger total score (order n&mu;), a more predictable average (error &sigma;/&radic;n) and a spread of the total of order &sigma;&radic;n: the absolute uncertainty grows but the relative one, &sigma;/(&mu;&radic;n), shrinks. A defender with many identical systems can therefore forecast the aggregate penetration rate well, but not the exact number of compromised systems.</li>
+    <li><b>Effect of the number of attackers m.</b> m does not change the law of the score of one attacker. It controls how well we observe its distribution: the error of empirical probabilities, histograms and the KS distance is of order 1/&radic;m. If instead the m attackers are pooled on the same n systems and their scores are added, the aggregate behaves like a walk of length mn: the total has variance mn&sigma;&sup2; and the overall average has variance &sigma;&sup2;/(mn), so n and m play symmetric roles in the aggregate average, while the spread across attackers (the histograms above) depends only on n.</li>
+    <li><b>Caveats.</b> The model assumes independent, identically distributed systems. Real systems share software, configuration and vulnerabilities, so increments are positively correlated: the variance of S<sub>n</sub> is then larger than n&sigma;&sup2; and the CLT scaling can fail. The simulation is a best-case view of the aggregate risk.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function Phi(x){const t=1/(1+0.2316419*Math.abs(x)),d=0.3989423*Math.exp(-x*x/2),q=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-q:q}
+const COLS=["#4da3ff","#43d19e","#b58cff","#ffb454","#ff6b6b","#7fd6ff","#c9d1e3","#f58fd0"];
+const fmt=v=>{const a=Math.abs(v);return a===0?"0":(a>=1000||a<0.01)?v.toExponential(0):(+v.toPrecision(3)).toString()};
+
+function plot(cv,o){
+  const c=cv.getContext("2d"),W=cv.width,H=cv.height,L=54,B=24,T=10,R=10,pw=W-L-R,ph=H-B-T;
+  c.clearRect(0,0,W,H);
+  let ymin=o.ymin,ymax=o.ymax;
+  if(ymin==null){ymin=Infinity;ymax=-Infinity;for(const s of o.series)for(const y of s.y){if(y<ymin)ymin=y;if(y>ymax)ymax=y;}
+    if(o.ref)for(const y of o.ref.y){if(y<ymin)ymin=y;if(y>ymax)ymax=y;}
+    const pad=(ymax-ymin||1)*0.1;ymin-=pad;ymax+=pad;}
+  const lx=o.logx,x0=o.xmin,x1=o.xmax;
+  const X=x=>L+pw*(lx?(Math.log(x)-Math.log(x0))/(Math.log(x1)-Math.log(x0)):(x-x0)/(x1-x0));
+  const Y=y=>T+ph*(1-(y-ymin)/(ymax-ymin));
+  c.strokeStyle="#2a3550";c.fillStyle="#8d98b0";c.font="10px sans-serif";c.textAlign="right";
+  for(let t=0;t<=4;t++){const v=ymin+(ymax-ymin)*t/4,y=Y(v);c.beginPath();c.moveTo(L,y);c.lineTo(W-R,y);c.stroke();c.fillText(fmt(v),L-4,y+3);}
+  c.textAlign="center";
+  if(lx){for(let e=Math.ceil(Math.log10(x0));10**e<=x1;e++){const x=X(10**e);c.beginPath();c.moveTo(x,T);c.lineTo(x,H-B);c.stroke();c.fillText("10^"+e,x,H-8);}}
+  else for(let t=0;t<=4;t++)c.fillText(fmt(x0+(x1-x0)*t/4),L+pw*t/4,H-8);
+  c.save();c.beginPath();c.rect(L,T,pw,ph);c.clip();
+  if(o.band){c.fillStyle="rgba(77,163,255,0.13)";c.beginPath();o.band.x.forEach((x,i)=>{i?c.lineTo(X(x),Y(o.band.hi[i])):c.moveTo(X(x),Y(o.band.hi[i]))});
+    for(let i=o.band.x.length-1;i>=0;i--)c.lineTo(X(o.band.x[i]),Y(o.band.lo[i]));c.closePath();c.fill();}
+  if(o.ref){c.strokeStyle=o.ref.color||"#ff6b6b";c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();o.ref.x.forEach((x,i)=>{i?c.lineTo(X(x),Y(o.ref.y[i])):c.moveTo(X(x),Y(o.ref.y[i]))});c.stroke();c.setLineDash([]);}
+  o.series.forEach((s,j)=>{c.strokeStyle=s.color||COLS[j%COLS.length];c.lineWidth=s.w||1.3;c.beginPath();s.x.forEach((x,i)=>{i?c.lineTo(X(x),Y(s.y[i])):c.moveTo(X(x),Y(s.y[i]))});c.stroke();});
+  c.restore();c.lineWidth=1;
+}
+function hist(cv,vals,lo,hi,bins,curve){
+  const c=cv.getContext("2d"),W=cv.width,H=cv.height,L=40,B=22,T=8,R=8,pw=W-L-R,ph=H-B-T;
+  c.clearRect(0,0,W,H);
+  const cnt=new Array(bins).fill(0),bw=(hi-lo)/bins;
+  for(const v of vals){const b=Math.floor((v-lo)/bw);if(b>=0&&b<bins)cnt[b]++;}
+  const dens=cnt.map(k=>k/vals.length/bw);
+  let mx=Math.max(...dens);if(curve)for(let i=0;i<bins;i++)mx=Math.max(mx,curve(lo+(i+.5)*bw));mx*=1.1;
+  c.strokeStyle="#2a3550";c.fillStyle="#8d98b0";c.font="10px sans-serif";c.textAlign="right";
+  for(let t=0;t<=3;t++){const y=T+ph*(1-t/3);c.beginPath();c.moveTo(L,y);c.lineTo(W-R,y);c.stroke();c.fillText(fmt(mx*t/3),L-4,y+3);}
+  c.fillStyle="#4da3ff";dens.forEach((d,i)=>{const h=ph*d/mx;c.fillRect(L+i*pw/bins+0.5,T+ph-h,Math.max(1,pw/bins-1),h);});
+  if(curve){c.strokeStyle="#ffb454";c.lineWidth=1.6;c.beginPath();for(let i=0;i<=100;i++){const x=lo+(hi-lo)*i/100,y=T+ph*(1-curve(x)/mx);i?c.lineTo(L+pw*i/100,y):c.moveTo(L,y);}c.stroke();c.lineWidth=1;}
+  c.fillStyle="#8d98b0";c.textAlign="center";
+  for(let t=0;t<=4;t++)c.fillText(fmt(lo+(hi-lo)*t/4),L+pw*t/4,H-7);
+}
+const tick=()=>new Promise(r=>setTimeout(r,0));
+
+async function run(){
+  const btn=$("btn");btn.disabled=true;$("err").textContent="";
+  await tick();
+  try{
+    const rad=$("model").value==="rad";
+    const p=rad?0.5:parseFloat($("p").value),N=parseInt($("N").value),m=parseInt($("m").value),eps=parseFloat($("eps").value),seed=parseInt($("seed").value)||1;
+    if(!(p>0&&p<1))throw new Error("p must be in (0,1).");
+    if(!(N>=10&&N<=50000))throw new Error("n must be between 10 and 50000.");
+    if(!(m>=20&&m<=3000))throw new Error("m must be between 20 and 3000.");
+    if(!(eps>0))throw new Error("epsilon must be positive.");
+    const mu=rad?0:p,sig=rad?1:Math.sqrt(p*(1-p)),u=rng(seed);
+    // checkpoints (log-spaced + 10, 100, 1000, N)
+    const set=new Set([N]);for(let i=0;i<60;i++)set.add(Math.max(1,Math.round(10**(i*Math.log10(N)/59))));
+    for(const v of [10,100,1000])if(v<=N)set.add(v);
+    const cps=[...set].sort((a,b)=>a-b),C=cps.length,SC=new Float64Array(m*C),NP=8,paths=[];
+    for(let j=0;j<NP;j++)paths.push(new Float32Array(N+1));
+    for(let j=0;j<m;j++){
+      let S=0,ci=0;
+      for(let k=1;k<=N;k++){
+        S+=u()<p?1:(rad?-1:0);
+        if(j<NP)paths[j][k]=S;
+        if(k===cps[ci]){SC[j*C+ci]=S;ci++;}
+      }
+      if(j%100===0)await tick();
+    }
+    $("info").innerHTML=`Model: <b>${rad?"Rademacher":"Bernoulli p="+p}</b> &middot; &mu; = ${mu}, &sigma;&sup2; = ${(sig*sig).toFixed(4)} &middot; n up to ${N} systems, m = ${m} attackers (${(m*N).toLocaleString()} simulated increments).`;
+    // trajectory plots
+    const pts=[...new Set(Array.from({length:300},(_,i)=>Math.max(1,Math.round(10**(i*Math.log10(N)/299)))))];
+    const tr=f=>paths.map((P,j)=>({x:pts,y:pts.map(k=>f(P[k],k))}));
+    const band=f=>({x:pts,lo:pts.map(k=>f(k,-1)),hi:pts.map(k=>f(k,1))});
+    plot($("p1"),{logx:true,xmin:1,xmax:N,series:tr((s,k)=>s),band:band((k,s)=>k*mu+s*2*sig*Math.sqrt(k)),ref:{x:pts,y:pts.map(k=>k*mu)}});
+    plot($("p2"),{logx:true,xmin:1,xmax:N,series:tr((s,k)=>s/k),band:band((k,s)=>mu+s*2*sig/Math.sqrt(k)),ref:{x:pts,y:pts.map(()=>mu)},ymin:mu-1.2*Math.max(sig,0.5)*1.0,ymax:mu+1.2*Math.max(sig,0.5)*1.0});
+    plot($("p3"),{logx:true,xmin:1,xmax:N,series:tr((s,k)=>s/Math.sqrt(k)),band:band((k,s)=>mu*Math.sqrt(k)+s*2*sig),ref:{x:pts,y:pts.map(k=>mu*Math.sqrt(k))}});
+    // statistics per checkpoint
+    const lln=[],vS=[],vA=[],vN=[],ks=[],cheb=[],rows=[];
+    for(let c=0;c<C;c++){
+      const n=cps[c],S=new Float64Array(m);for(let j=0;j<m;j++)S[j]=SC[j*C+c];
+      let ms=0;for(const v of S)ms+=v;ms/=m;let vs=0;for(const v of S)vs+=(v-ms)**2;vs/=m-1;
+      const vsn=vs/(n*sig*sig),van=(vs/(n*n))/(sig*sig/n),vnn=(vs/n)/(sig*sig);
+      let ex=0;for(const v of S)if(Math.abs(v/n-mu)>eps)ex++;
+      const w=Array.from(S,v=>(v-n*mu)/(sig*Math.sqrt(n))).sort((a,b)=>a-b);
+      let d=0;w.forEach((x,i)=>{const F=Phi(x);d=Math.max(d,Math.abs(F-i/m),Math.abs(F-(i+1)/m));});
+      lln.push(ex/m);cheb.push(Math.min(1,sig*sig/(n*eps*eps)));vS.push(vsn);vA.push(van);vN.push(vnn);ks.push(d);
+      if([10,100,1000,N].includes(n)&&!rows.some(r=>r.n===n))rows.push({n,ms,vs,ex:ex/m,d,mn:ms/n,vn:vs/n});
+    }
+    plot($("lln"),{logx:true,xmin:1,xmax:N,ymin:0,ymax:1,series:[{x:cps,y:lln,color:"#43d19e",w:2}],ref:{x:cps,y:cheb,color:"#ffb454"}});
+    plot($("var"),{logx:true,xmin:1,xmax:N,ymin:0,ymax:2,series:[{x:cps,y:vS,color:"#4da3ff"},{x:cps,y:vA,color:"#43d19e"},{x:cps,y:vN,color:"#b58cff"}],ref:{x:cps,y:cps.map(()=>1),color:"#ff6b6b"}});
+    plot($("ks"),{logx:true,xmin:1,xmax:N,ymin:0,ymax:0.6,series:[{x:cps,y:ks,color:"#ff6b6b",w:2}],ref:{x:cps,y:cps.map(()=>0.87/Math.sqrt(m)),color:"#8d98b0"}});
+    // histograms
+    const sel=[10,100,1000,N].filter((v,i,a)=>v<=N&&a.indexOf(v)===i).map(v=>cps.indexOf(v));
+    let ha="",hw="";sel.forEach(c=>{ha+=`<div class="card"><h3>n = ${cps[c]}</h3><canvas id="ha${c}" width="300" height="190"></canvas></div>`;hw+=`<div class="card"><h3>n = ${cps[c]}</h3><canvas id="hw${c}" width="300" height="190"></canvas></div>`;});
+    $("ha").innerHTML=ha;$("hw").innerHTML=hw;
+    const half=3.5*sig/Math.sqrt(10),phi=x=>Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);
+    sel.forEach(c=>{const n=cps[c],S=Array.from({length:m},(_,j)=>SC[j*C+c]);
+      hist($("ha"+c),S.map(v=>v/n),mu-half,mu+half,40);
+      hist($("hw"+c),S.map(v=>(v-n*mu)/(sig*Math.sqrt(n))),-4,4,Math.min(40,Math.max(12,Math.round(n+1)/1>40?40:n+1)),phi);});
+    // table
+    const f=(x,d=3)=>x.toFixed(d);
+    $("tab").innerHTML=`<table><tr><th>n</th><th>Var(S<sub>n</sub>): measured / n&sigma;&sup2;</th><th>Var(S<sub>n</sub>/n): measured / (&sigma;&sup2;/n)</th><th>Var(S<sub>n</sub>/&radic;n): measured / &sigma;&sup2;</th><th>mean of S<sub>n</sub>/n (&mu;=${mu})</th><th>P(|S<sub>n</sub>/n&minus;&mu;|&gt;&epsilon;) vs Chebyshev</th><th>KS to N(0,1)</th></tr>`+
+      rows.map(r=>`<tr><td>${r.n}</td><td>${f(r.vs,1)} / ${f(r.n*sig*sig,1)}</td><td>${(r.vs/(r.n*r.n)).toExponential(2)} / ${(sig*sig/r.n).toExponential(2)}</td><td>${f(r.vn)} / ${f(sig*sig)}</td><td>${f(r.mn)}</td><td>${f(r.ex)} vs ${f(Math.min(1,sig*sig/(r.n*eps*eps)))}</td><td>${f(r.d)}</td></tr>`).join("")+`</table>`;
+  }catch(e){$("err").textContent=e.message;}
+  btn.disabled=false;
+}
+$("btn").onclick=run;
+run();
+</script>
+</body>
+</html>
