@@ -40,16 +40,23 @@
   .good{color:var(--ok)} .warnc{color:var(--warn)}
   ul{margin:6px 0 6px 20px;padding:0} li{margin:3px 0}
   code{background:#0c111d;padding:1px 5px;border-radius:4px}
-  .back-link{
-    display:inline-block;
-    margin:18px 0 0 18px;
-    color:#e6eaf2;
-    text-decoration:none;
-    font-weight:600;
-    font-size:1rem;
+
+  .back-link {
+    display: inline-block;
+    margin: 18px 0 0 18px;
+    padding: 6px 10px;
+    color: #e6eaf2;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.2;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.02);
   }
-  .back-link:hover{
-    text-decoration:underline;
+
+  .back-link:hover {
+    text-decoration: underline;
+    background: rgba(255,255,255,0.04);
   }
 </style>
 </head>
@@ -60,8 +67,8 @@
     <h1>Homework 1.1 - Private key → Public key in Ethereum</h1>
     <p class="sub">Toy curve <code>y² = x³ + 7 (mod p)</code> (same form as secp256k1, the curve used by Ethereum, but with a tiny prime p). Public key: <code>Q = k·G</code>.</p>
   </header>
-  <main>
 
+  <main>
   <section>
     <div class="controls">
       <label>p (prime, ≤ 20011)<input id="p" type="number" value="17"></label>
