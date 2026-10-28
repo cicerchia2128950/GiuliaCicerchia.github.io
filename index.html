@@ -6,13 +6,14 @@
   <title>Statistics Homework Blog</title>
   <style>
     :root {
-      --bg: #eeeeee;
-      --panel: #f4f4f4;
-      --panel-strong: #ffffff;
-      --border: #d9d9d9;
-      --text: #262b33;
-      --muted: #5e6670;
-      --link: #1f7ae0;
+      --bg: #0f1420;
+      --panel: #171e2e;
+      --panel-strong: #1d273b;
+      --border: #2a3550;
+      --text: #e6eaf2;
+      --muted: #8d98b0;
+      --link: #4da3ff;
+      --shadow: rgba(0, 0, 0, 0.25);
     }
 
     * { box-sizing: border-box; }
@@ -30,36 +31,49 @@
       padding: 40px 24px 80px;
     }
 
+    .header {
+      margin-bottom: 30px;
+    }
+
     h1 {
-      margin: 0 0 30px 0;
+      margin: 0;
       font-size: clamp(2.8rem, 4vw, 5rem);
       line-height: 1.1;
       letter-spacing: -0.06em;
       font-weight: 800;
-      color: #2b2f36;
+      color: var(--text);
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      font-size: clamp(1.1rem, 2vw, 1.7rem);
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
 
     .card {
       display: block;
-      background: var(--panel-strong);
+      background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 28px 28px 24px;
       margin-bottom: 24px;
-      box-shadow: 0 2px 0 rgba(0,0,0,0.02);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 8px 18px var(--shadow);
       text-decoration: none;
       color: inherit;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     }
 
     .card:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+      border-color: var(--link);
     }
 
     .card h2 {
       margin: 0 0 12px 0;
-      font-size: clamp(2.2rem, 3vw, 3.4rem);
+      font-size: clamp(2.1rem, 3vw, 3.3rem);
       line-height: 1.1;
       font-weight: 700;
       color: var(--link);
@@ -68,7 +82,7 @@
 
     .card p {
       margin: 0;
-      font-size: clamp(1.2rem, 1.8vw, 2rem);
+      font-size: clamp(1.15rem, 1.8vw, 2rem);
       line-height: 1.5;
       color: var(--muted);
     }
@@ -76,7 +90,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>Statistics Homework Blog</h1>
+    <div class="header">
+      <h1>Statistics Homework Blog</h1>
+      <div class="subtitle">Giulia Cicerchia, Cybersecurity Sapienza</div>
+    </div>
 
     <a class="card" href="homework1.1.html">
       <h2>Homework 1.1</h2>
