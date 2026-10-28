@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Homework 1.1 - Toy ECC: private key to public key</title>
+<title>HMWK 1 - Toy ECC: PRIVATE KEY → PUBLIC KEY</title>
 <style>
   :root{--bg:#0f1420;--panel:#171e2e;--ink:#e6eaf2;--mute:#8d98b0;--acc:#4da3ff;--ok:#43d19e;--warn:#ffb454;--bad:#ff6b6b;--vio:#b58cff;--line:#2a3550}
   *{box-sizing:border-box}
@@ -44,7 +44,7 @@
 </head>
 <body>
 <header>
-  <h1>Homework 1.1</h1>
+  <h1>HMWK 1 - Toy ECC: PRIVATE KEY → PUBLIC KEY</h1>
   <p class="sub">Toy curve <code>y² = x³ + 7 (mod p)</code> (same form as secp256k1, the curve used by Ethereum, but with a tiny prime p). Public key: <code>Q = k·G</code>.</p>
 </header>
 <main>
@@ -176,12 +176,10 @@
 </main>
 
 <script>
-// ============================================================
-// CORE: arithmetic on the curve y^2 = x^3 + 7 (mod p). null = point at infinity
-// ============================================================
+// core arithmetic
 const A_COEF = 0, B_COEF = 7;
 function mod(a, p) { return ((a % p) + p) % p; }
-function inv(a, p) {                       // modular inverse (extended Euclid)
+function inv(a, p) {
   a = mod(a, p);
   let t = 0, nt = 1, r = p, nr = a;
   while (nr) {
