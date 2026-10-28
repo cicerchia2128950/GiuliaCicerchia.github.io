@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HMWK 1 — Toy ECC: chiave privata → chiave pubblica</title>
+<title>HMWK 1 - Toy ECC: private key to public key</title>
 <style>
   :root{--bg:#0f1420;--panel:#171e2e;--ink:#e6eaf2;--mute:#8d98b0;--acc:#4da3ff;--ok:#43d19e;--warn:#ffb454;--bad:#ff6b6b;--vio:#b58cff;--line:#2a3550}
   *{box-sizing:border-box}
@@ -44,24 +44,24 @@
 </head>
 <body>
 <header>
-  <h1>HMWK 1 — Toy ECC: PRIVATE KEY → PUBLIC KEY</h1>
-  <p class="sub">Curva giocattolo <code>y² = x³ + 7 (mod p)</code> (stessa forma di secp256k1 usata da Ethereum, ma con p minuscolo). Chiave pubblica <code>Q = k·G</code>.</p>
+  <h1>HMWK 1 - Toy ECC: PRIVATE KEY &rarr; PUBLIC KEY</h1>
+  <p class="sub">Toy curve <code>y&sup2; = x&sup3; + 7 (mod p)</code> (same form as secp256k1, the curve used by Ethereum, but with a tiny prime p). Public key: <code>Q = k&middot;G</code>.</p>
 </header>
 <main>
 
 <section>
   <div class="controls">
-    <label>p (primo ≤ 20011)<input id="p" type="number" value="17"></label>
+    <label>p (prime, &le; 20011)<input id="p" type="number" value="17"></label>
     <label>G.x<input id="gx" type="number" value="1"></label>
     <label>G.y<input id="gy" type="number" value="5"></label>
-    <label>k (chiave privata)<input id="k" type="number" value="6"></label>
-    <label>Algoritmo
+    <label>k (private key)<input id="k" type="number" value="6"></label>
+    <label>Algorithm
       <select id="mode">
-        <option value="naive">G, 2G, 3G, … kG (somme successive)</option>
-        <option value="dbl">double-and-add (veloce)</option>
+        <option value="naive">G, 2G, 3G, ..., kG (successive additions)</option>
+        <option value="dbl">double-and-add (fast)</option>
       </select>
     </label>
-    <button id="btnRun">Calcola</button>
+    <button id="btnRun">Compute</button>
     <button id="btnPreset1" class="sec">Preset p=17</button>
     <button id="btnPreset2" class="sec">Preset p=10007</button>
   </div>
@@ -69,89 +69,107 @@
 </section>
 
 <section>
-  <h2>1. Calcolo della chiave pubblica</h2>
+  <h2>1. Computing the public key</h2>
   <div id="pubkey" class="pub"></div>
   <div id="curveinfo" class="sub"></div>
-  <h3>Multipli di G</h3>
+  <h3>Multiples of G</h3>
   <pre id="list"></pre>
 </section>
 
 <section>
-  <h2>2. Visualizzazione rallentata</h2>
+  <h2>2. Slowed-down visualization</h2>
   <div class="two">
     <div>
       <canvas id="cv" width="580" height="580"></canvas>
       <div class="legend" style="margin-top:6px">
         <span><i class="dot" style="background:#4da3ff"></i>G</span>
-        <span><i class="dot" style="background:#43d19e"></i>primo operando</span>
-        <span><i class="dot" style="background:#b58cff"></i>secondo operando</span>
-        <span><i class="dot" style="background:#ff6b6b"></i>risultato</span>
-        <span><i class="dot" style="background:#ffb454"></i>multipli già calcolati</span>
-        <span><i class="dot" style="background:#4a5878"></i>punti della curva</span>
+        <span><i class="dot" style="background:#43d19e"></i>first operand</span>
+        <span><i class="dot" style="background:#b58cff"></i>second operand</span>
+        <span><i class="dot" style="background:#ff6b6b"></i>result</span>
+        <span><i class="dot" style="background:#ffb454"></i>multiples already computed</span>
+        <span><i class="dot" style="background:#4a5878"></i>curve points</span>
       </div>
     </div>
     <div>
       <div class="controls" style="margin-bottom:10px">
-        <button id="btnPlay">▶ Avvia</button>
-        <button id="btnStep" class="sec">Passo ›</button>
-        <button id="btnReset" class="sec">⟲ Reset</button>
-        <label>Pausa per passo<input id="speed" type="range" min="250" max="3000" value="1400"></label>
+        <button id="btnPlay">&#9654; Play</button>
+        <button id="btnStep" class="sec">Step &rsaquo;</button>
+        <button id="btnReset" class="sec">&#10226; Reset</button>
+        <label>Pause per step<input id="speed" type="range" min="250" max="3000" value="1400"></label>
       </div>
-      <div class="info" id="stepinfo">Premi «Avvia» o «Passo».</div>
+      <div class="info" id="stepinfo">Press "Play" or "Step".</div>
       <p class="sub" style="margin-top:10px;font-size:.85rem">
-        Sul campo finito non esiste una “retta” continua: la somma di punti è calcolata con le formule algebriche
-        (pendenza λ mod p), per questo i punti sembrano saltare a caso — è proprio l’aspetto che rende difficile risalire a k.
+        Over a finite field there is no continuous "line" through two points: the sum of points is computed with the
+        algebraic formulas (slope &lambda; mod p). This is why the points seem to jump around at random, and it is exactly
+        what makes it hard to recover k from Q.
       </p>
-      <h3>Attacco brute force (ECDLP in miniatura)</h3>
-      <button id="btnBrute" class="sec">Ricava k da Q provando tutti i multipli</button>
+      <h3>Brute-force attack (ECDLP in miniature)</h3>
+      <button id="btnBrute" class="sec">Recover k from Q by trying every multiple</button>
       <div id="bruteout" class="sub" style="margin-top:6px"></div>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>3. Esplorazione statistica</h2>
-  <p class="sub">Si calcolano tutti i punti <code>kG</code> per <code>k = 1 … n−1</code>, dove n è l’ordine del sottogruppo generato da G.</p>
+  <h2>3. Statistical exploration</h2>
+  <p class="sub">All points <code>kG</code> are computed for <code>k = 1 ... n-1</code>, where n is the order of the subgroup generated by G.</p>
   <div id="metrics"></div>
   <div class="grid" style="margin-top:12px">
-    <div class="card"><h3>Distribuzione di x (frequenza per bin)</h3><canvas id="hx" width="520" height="240"></canvas></div>
-    <div class="card"><h3>Distribuzione di y (frequenza per bin)</h3><canvas id="hy" width="520" height="240"></canvas></div>
-    <div class="card"><h3>Frequenza dei bit a 1 (x: prime barre, y: ultime) — riferimento 0.5</h3><canvas id="hb" width="520" height="240"></canvas></div>
-    <div class="card"><h3>Avalanche: frazione media di bit d’uscita che cambiano se si inverte il bit i di k (rif. 0.5)</h3><canvas id="av" width="520" height="240"></canvas></div>
-    <div class="card"><h3>Input → output: k (asse x) vs x(kG) (asse y)</h3><canvas id="sx" width="520" height="240"></canvas></div>
-    <div class="card"><h3>Input → output: k (asse x) vs y(kG) (asse y)</h3><canvas id="sy" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Distribution of x (frequency per bin)</h3><canvas id="hx" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Distribution of y (frequency per bin)</h3><canvas id="hy" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Frequency of bits equal to 1 (x first, then y), reference 0.5</h3><canvas id="hb" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Avalanche: average fraction of output bits that flip when bit i of k is flipped (ref. 0.5)</h3><canvas id="av" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Input vs output: k (x axis) vs x(kG) (y axis)</h3><canvas id="sx" width="520" height="240"></canvas></div>
+    <div class="card"><h3>Input vs output: k (x axis) vs y(kG) (y axis)</h3><canvas id="sy" width="520" height="240"></canvas></div>
   </div>
 </section>
 
 <section>
-  <h2>4. Discussione</h2>
+  <h2>4. Discussion of the results</h2>
   <div id="discussion">
-    <h3>Cosa mostrano i dati</h3>
+    <h3>Measured values (full subgroup generated by G, all k = 1 ... n-1)</h3>
+    <table>
+      <tr><th>Quantity</th><th>p = 17, G = (1,5)</th><th>p = 10007, G = (5,566)</th></tr>
+      <tr><td>Order n of G</td><td>9 (the group has 18 points, G generates half of them)</td><td>10008 = p + 1 (whole group)</td></tr>
+      <tr><td>Distinct x values used</td><td>4 of 17, each exactly twice (y and -y)</td><td>5004 of 10007, each twice (once for the point with y = 0)</td></tr>
+      <tr><td>Distinct y values used</td><td>8 of 17, each once</td><td>10007 of 10007, each exactly once</td></tr>
+      <tr><td>Entropy H(x), H(y) (max log2 p)</td><td>2.000, 3.000 bit (max 4.087)</td><td>12.289, 13.289 bit (max 13.289)</td></tr>
+      <tr><td>Correlation r(k,x), r(k,y)</td><td>0.000, 0.298 (only 8 samples)</td><td>-0.000, -0.006</td></tr>
+      <tr><td>Lag-1 autocorrelation of x(kG)</td><td>0.545 (only 8 samples, not significant)</td><td>-0.007</td></tr>
+      <tr><td>Symmetry x((n-k)G) = x(kG), y opposite</td><td>8 of 8</td><td>10007 of 10007</td></tr>
+      <tr><td>Max bias of a bit from 0.5</td><td>0.500 (tiny sample)</td><td>0.321 (top bit is 1 only 18% of the time)</td></tr>
+      <tr><td>Avalanche on k&rarr;(x,y): curve vs reference hash</td><td>0.489 vs 0.456 (10 output bits)</td><td>0.483 vs 0.500 (28 output bits)</td></tr>
+    </table>
+
+    <h3>Interpretation</h3>
     <ul>
-      <li><b>Distribuzione di x e y</b>: i multipli di G coprono il sottogruppo in modo molto regolare. Ogni x compare esattamente due volte (con <i>y</i> e <i>−y</i>), quindi l’istogramma è piatto per costruzione, ma usa solo circa metà dei valori possibili di x (quelli per cui x³+7 è un residuo quadratico).</li>
-      <li><b>Simmetria</b>: <code>x((n−k)G) = x(kG)</code> e <code>y((n−k)G) = −y(kG)</code>. Il grafico k→x è quindi speculare attorno a n/2: una struttura algebrica evidente, che un hash non avrebbe.</li>
-      <li><b>Bit</b>: i bit di x e y sono vicini a 0.5 ma non esattamente, perché le coordinate sono in [0, p−1] e p non è una potenza di 2 (i bit alti sono sbilanciati).</li>
-      <li><b>Correlazione input/output</b>: r(k,x) e r(k,y) sono piccole; la sequenza dei multipli ha l’aspetto di una permutazione “casuale” del sottogruppo, anche se è interamente deterministica.</li>
-      <li><b>Avalanche</b>: invertire un bit di k cambia k di ±2^i, cioè Q → Q ± 2^i·G. Le coordinate appaiono molto diverse, ma la relazione è algebrica e nota (omomorfismo): non è un avalanche “crittografico”, e in un gruppo così piccolo i numeri sono comunque poco significativi.</li>
+      <li><b>Distribution of x and y.</b> The histograms are essentially flat, but this comes from the algebra and not from "randomness". The map k&rarr;kG is a bijection onto the subgroup, so no point is repeated. Every x appears exactly twice (as +y and -y) and, for p = 10007, every y appears exactly once (because p &equiv; 2 mod 3, the cube map is a bijection). Only about half of the possible x values are ever used (those for which x&sup3;+7 is a quadratic residue), which is why H(x) is one bit below log2 p.</li>
+      <li><b>Bits.</b> The inner bits of x and y are balanced (about 0.50). The top bits are biased because the coordinates lie in [0, p-1] and p is not a power of 2: for p = 10007 &lt; 2<sup>14</sup>, the top bit is 1 only 18% of the time and the next two bits about 41%. This is a property of the encoding, not of the function.</li>
+      <li><b>Correlation between input and output.</b> For p = 10007 the linear correlations between k and x or y and the lag-1 autocorrelation are all below 0.01 in absolute value: nearby private keys give public keys that look unrelated. The values for p = 17 are not meaningful because there are only 8 points. However, the scatter plot of k vs x is not structureless: it is mirror-symmetric around n/2 because x((n-k)G) = x(kG).</li>
+      <li><b>Avalanche-like behaviour.</b> Flipping one bit of k changes about 48% of the output bits, close to the ideal 50% of a good hash (0.483 vs 0.500 for the reference mixing function). This must be read with care. Flipping bit i changes k by &plusmn;2<sup>i</sup>, so Q changes to Q &plusmn; 2<sup>i</sup>G, an exact algebraic relation that anyone can compute. The coordinates look very different, but the relation between the two outputs is fully known (the function is a group homomorphism). The apparent avalanche is therefore a consequence of the coordinates looking pseudo-random, not a design property.</li>
     </ul>
-    <h3>Proprietà significative per una funzione one-way (ECC)</h3>
+
+    <h3>Which properties matter for a cryptographic one-way function</h3>
     <ul>
-      <li><b>Facile in avanti, difficile all’indietro</b>: Q = kG costa O(log k) operazioni (double-and-add); ricavare k da Q richiede di risolvere l’ECDLP (≈ √n con gli attacchi generici migliori). Qui n è minuscolo, quindi il brute force è immediato; per secp256k1 n ≈ 2²⁵⁶.</li>
-      <li><b>Determinismo</b> e <b>output dall’aspetto uniforme</b> nel sottogruppo (nessuna correlazione utile tra k e Q).</li>
-      <li><b>Iniettività</b> su k ∈ [1, n−1]: ogni chiave privata dà una chiave pubblica diversa (nessuna collisione per costruzione).</li>
-      <li><b>Struttura algebrica</b> (cioè (k₁+k₂)G = k₁G + k₂G): non è un difetto, ma è ciò che rende possibili firme digitali, ECDH, ecc.</li>
+      <li><b>Easy forward, hard backward.</b> Q = kG costs O(log k) group operations (double-and-add), while recovering k from Q is the Elliptic Curve Discrete Logarithm Problem. The best generic attacks need about &radic;n steps. Here the brute-force button finds k instantly because n &le; 10<sup>4</sup>; for secp256k1, n &asymp; 2<sup>256</sup> and &radic;n &asymp; 10<sup>38</sup>.</li>
+      <li><b>Determinism and pseudo-random-looking output</b> inside the subgroup (no useful statistical relation between k and Q): the statistics above are meaningful as a sanity check for this.</li>
+      <li><b>Injectivity</b> for k in [1, n-1]: different private keys always give different public keys.</li>
+      <li><b>Algebraic structure</b>, (k1+k2)G = k1G + k2G, is not a weakness here; it is exactly what makes digital signatures, ECDH and key derivation possible.</li>
     </ul>
-    <h3>Proprietà tipiche delle funzioni hash crittografiche (non richieste, anzi assenti, in kG)</h3>
+
+    <h3>Properties specific to cryptographic hash functions</h3>
     <ul>
-      <li><b>Input di lunghezza arbitraria → output di lunghezza fissa</b> (compressione), con collisioni inevitabili ma introvabili: <i>collision resistance</i> e <i>second-preimage resistance</i>.</li>
-      <li><b>Avalanche effect rigoroso</b>: ogni bit d’ingresso cambia circa il 50% dei bit d’uscita, senza relazioni algebriche sfruttabili.</li>
-      <li><b>Assenza di struttura</b>: un hash non deve essere omomorfico né avere simmetrie come x(kG) = x(−kG).</li>
-      <li><b>Uniformità bit a bit</b> dell’output su tutto lo spazio dei bit (qui invece l’output è un punto sulla curva, solo ~metà dello spazio (x,y) è occupato, e verifica l’equazione della curva).</li>
+      <li><b>Compression:</b> arbitrary-length input to fixed-length output, so collisions must exist but be infeasible to find (collision resistance, second-preimage resistance). kG has no collisions on [1, n-1] and takes a number, not an arbitrary message.</li>
+      <li><b>A strict avalanche effect</b> with no exploitable relation between outputs. In kG the relation Q' = Q &plusmn; 2<sup>i</sup>G is public.</li>
+      <li><b>No algebraic structure.</b> A hash must not be homomorphic or have symmetries such as x(kG) = x(-kG).</li>
+      <li><b>Uniformity over the whole output space.</b> The output of kG is a curve point, so only about half of the (x, y) space is occupied and every output satisfies the curve equation.</li>
     </ul>
-    <h3>Avvertenze sul toy</h3>
+
+    <h3>Conclusion and caveats</h3>
     <ul>
-      <li>Per p ≡ 2 (mod 3), come p = 17, la curva y² = x³ + 7 è <i>supersingolare</i> e ha p+1 punti; secp256k1 ha invece p ≡ 1 (mod 3) ed è ordinaria. Il toy serve solo a capire la meccanica, non è sicuro.</li>
-      <li>Con gruppi così piccoli i test statistici hanno poca potenza: il preset p = 10007 dà risultati più leggibili.</li>
+      <li>Scalar multiplication behaves like a one-way function because of the ECDLP, not because of hash-like mixing. Statistical tests (uniformity, correlation, avalanche) can only show that the outputs look random; they say nothing about the hardness of inverting the map.</li>
+      <li>For p &equiv; 2 (mod 3), such as 17 and 10007, the curve y&sup2; = x&sup3; + 7 is supersingular with exactly p + 1 points, which is why n = 10008. secp256k1 has p &equiv; 1 (mod 3) and is an ordinary curve. This toy is for understanding the mechanics only and is not secure.</li>
+      <li>For tiny groups the statistical tests have little power (8 samples for p = 17), so the p = 10007 results are the more reliable ones.</li>
     </ul>
   </div>
 </section>
@@ -159,12 +177,11 @@
 
 <script>
 // ============================================================
-// CORE: aritmetica sulla curva y^2 = x^3 + 7 (mod p). null = punto all'infinito
+// CORE: arithmetic on the curve y^2 = x^3 + 7 (mod p). null = point at infinity
 // ============================================================
-// ==CORE==
 const A_COEF = 0, B_COEF = 7;
 function mod(a, p) { return ((a % p) + p) % p; }
-function inv(a, p) {                       // inverso modulare (Euclide esteso)
+function inv(a, p) {                       // modular inverse (extended Euclid)
   a = mod(a, p);
   let t = 0, nt = 1, r = p, nr = a;
   while (nr) {
@@ -172,7 +189,7 @@ function inv(a, p) {                       // inverso modulare (Euclide esteso)
     [t, nt] = [nt, t - q * nt];
     [r, nr] = [nr, r - q * nr];
   }
-  if (r !== 1) throw new Error("non invertibile");
+  if (r !== 1) throw new Error("not invertible");
   return mod(t, p);
 }
 function isPrime(n) {
@@ -185,17 +202,17 @@ function onCurve(P, p) {
 }
 function same(P, Q) { return (!P && !Q) || (P && Q && P.x === Q.x && P.y === Q.y); }
 
-// somma di due punti: restituisce {R, lam, type}
+// point addition: returns {R, lam, type}
 function addPts(P, Q, p) {
   if (!P) return { R: Q, type: "id" };
   if (!Q) return { R: P, type: "id" };
   let lam, type;
   if (P.x === Q.x) {
     if (mod(P.y + Q.y, p) === 0) return { R: null, type: "inf" };
-    lam = mod(mod(3 * P.x * P.x + A_COEF, p) * inv(2 * P.y, p), p);   // raddoppio: tangente
+    lam = mod(mod(3 * P.x * P.x + A_COEF, p) * inv(2 * P.y, p), p);   // doubling: tangent
     type = "dbl";
   } else {
-    lam = mod(mod(Q.y - P.y, p) * inv(Q.x - P.x, p), p);              // somma: secante
+    lam = mod(mod(Q.y - P.y, p) * inv(Q.x - P.x, p), p);              // addition: secant
     type = "add";
   }
   const x3 = mod(lam * lam - P.x - Q.x, p);
@@ -203,7 +220,7 @@ function addPts(P, Q, p) {
   return { R: { x: x3, y: y3 }, lam, type };
 }
 
-// sottogruppo generato da G: pts[i] = i*G per i = 0..n-1 (pts[0] = infinito); n = ordine
+// subgroup generated by G: pts[i] = i*G for i = 0..n-1 (pts[0] = infinity); n = order
 function subgroup(G, p) {
   const pts = [null, G];
   let R = G;
@@ -217,7 +234,7 @@ function subgroup(G, p) {
   return { n: pts.length, pts };
 }
 
-// passi per calcolare kG. mode: "naive" (G,2G,3G,...) oppure "dbl" (double-and-add)
+// steps to compute kG. mode: "naive" (G,2G,3G,...) or "dbl" (double-and-add)
 function buildSteps(k, G, p, mode) {
   const steps = [];
   let R = G, m = 1;
@@ -246,7 +263,7 @@ function buildSteps(k, G, p, mode) {
   return { steps, result: R };
 }
 
-// punti affini della curva (per il disegno)
+// all affine points of the curve (for drawing)
 function allCurvePoints(p) {
   const sq = new Map();
   for (let y = 0; y < p; y++) {
@@ -261,10 +278,9 @@ function allCurvePoints(p) {
   }
   return res;
 }
-// ==/CORE==
 
 // ============================================================
-// UTILITA' STATISTICHE
+// STATISTICAL HELPERS
 // ============================================================
 function popcount(v) { let c = 0; v = v >>> 0; while (v) { c += v & 1; v >>>= 1; } return c; }
 function bitlen(v) { return Math.max(1, v.toString(2).length); }
@@ -281,14 +297,14 @@ function entropy(counts, total) {
   for (const c of counts) if (c) { const q = c / total; h -= q * Math.log2(q); }
   return h;
 }
-function fmix32(h) {                 // finalizzatore di MurmurHash3: hash di riferimento molto semplice
+function fmix32(h) {                 // MurmurHash3 finalizer: simple reference mixing function
   h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
   h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
   h ^= h >>> 16; return h >>> 0;
 }
 
 // ============================================================
-// STATO E DOM
+// STATE AND DOM
 // ============================================================
 const $ = id => document.getElementById(id);
 const S = { p: 17, G: { x: 1, y: 5 }, k: 6, kEff: 6, mode: "naive", sg: null, steps: [], idx: 0, curve: [], timer: null, Q: null };
@@ -297,7 +313,7 @@ function ptStr(P) { return P ? `(${P.x}, ${P.y})` : "∞"; }
 function setErr(msg) { $("err").textContent = msg || ""; }
 
 // ============================================================
-// RUN: legge i parametri, calcola, aggiorna tutto
+// RUN: read parameters, compute, refresh everything
 // ============================================================
 function run() {
   stop();
@@ -305,18 +321,18 @@ function run() {
   const p = parseInt($("p").value, 10), gx = parseInt($("gx").value, 10), gy = parseInt($("gy").value, 10);
   const k = parseInt($("k").value, 10);
   let mode = $("mode").value;
-  if (!(p > 2 && isPrime(p) && p <= 20011)) return setErr("p deve essere un numero primo tra 3 e 20011.");
-  if (!(gx >= 0 && gx < p && gy >= 0 && gy < p)) return setErr("G deve avere coordinate in [0, p−1].");
+  if (!(p > 2 && isPrime(p) && p <= 20011)) return setErr("p must be a prime number between 3 and 20011.");
+  if (!(gx >= 0 && gx < p && gy >= 0 && gy < p)) return setErr("G must have coordinates in [0, p-1].");
   const G = { x: gx, y: gy };
-  if (!onCurve(G, p)) return setErr(`G=(${gx},${gy}) NON è sulla curva: y² = ${mod(gy*gy,p)} ma x³+7 = ${mod(gx*gx*gx+7,p)} (mod ${p}).`);
-  if (!(k >= 1)) return setErr("k deve essere un intero ≥ 1.");
+  if (!onCurve(G, p)) return setErr(`G=(${gx},${gy}) is NOT on the curve: y^2 = ${mod(gy*gy,p)} but x^3+7 = ${mod(gx*gx*gx+7,p)} (mod ${p}).`);
+  if (!(k >= 1)) return setErr("k must be an integer >= 1.");
 
   const sg = subgroup(G, p);
   const n = sg.n;
   let kEff = k % n, note = "";
-  if (kEff === 0) { kEff = n; note = `k è multiplo dell’ordine n=${n}: kG = ∞ (chiave non valida).`; }
-  else if (k >= n) note = `k ≥ n=${n}: si usa k mod n = ${kEff}.`;
-  if (mode === "naive" && kEff > 60) { mode = "dbl"; note += " (k grande: animazione con double-and-add)"; }
+  if (kEff === 0) { kEff = n; note = `k is a multiple of the order n=${n}: kG = infinity (invalid key).`; }
+  else if (k >= n) note = `k >= n=${n}: using k mod n = ${kEff}.`;
+  if (mode === "naive" && kEff > 60) { mode = "dbl"; note += " (large k: animation uses double-and-add)"; }
 
   Object.assign(S, { p, G, k, kEff, mode, sg, curve: allCurvePoints(p), idx: 0 });
   const built = kEff === n ? { steps: [], result: null } : buildSteps(kEff, G, p, mode);
@@ -324,43 +340,43 @@ function run() {
   S.Q = kEff === n ? null : sg.pts[kEff];
   const check = kEff === n ? true : same(built.result, S.Q);
 
-  // --- 1. risultato
-  $("pubkey").innerHTML = `TOY PUBLIC KEY  Q = ${k}·G = ${ptStr(S.Q)}`;
+  // --- 1. result
+  $("pubkey").innerHTML = `TOY PUBLIC KEY &nbsp; Q = ${k}&middot;G = ${ptStr(S.Q)}`;
   $("curveinfo").innerHTML =
-    `Curva y² = x³ + 7 (mod ${p}) · punti affini: ${S.curve.length} (+∞ = ${S.curve.length + 1}) · G = ${ptStr(G)} · ordine di G: <b>n = ${n}</b> · ` +
-    `verifica naive = double-and-add: <b class="${check ? "good" : "warnc"}">${check ? "OK ✓" : "ERRORE"}</b>` + (note ? `<br><span class="warnc">${note}</span>` : "");
+    `Curve y&sup2; = x&sup3; + 7 (mod ${p}) &middot; affine points: ${S.curve.length} (+infinity = ${S.curve.length + 1}) &middot; G = ${ptStr(G)} &middot; order of G: <b>n = ${n}</b> &middot; ` +
+    `check successive additions = double-and-add: <b class="${check ? "good" : "warnc"}">${check ? "OK" : "ERROR"}</b>` + (note ? `<br><span class="warnc">${note}</span>` : "");
   renderList(kEff, n);
 
-  // --- 2. disegno
-  $("stepinfo").innerHTML = S.steps.length ? "Premi «Avvia» o «Passo»." : "k = 1: la chiave pubblica coincide con G, nessun passo da mostrare.";
+  // --- 2. drawing
+  $("stepinfo").innerHTML = S.steps.length ? "Press \"Play\" or \"Step\"." : "k = 1: the public key equals G, there are no steps to show.";
   $("bruteout").textContent = "";
   drawMain();
 
-  // --- 3. statistiche
+  // --- 3. statistics
   computeStats();
 }
 
 function renderList(kEff, n) {
   const pts = S.sg.pts;
   const lines = [];
-  const show = i => lines.push(`${String(i).padStart(4)}G = ${ptStr(pts[i])}` + (i === kEff ? "   ← k·G = TOY PUBLIC KEY" : ""));
-  if (kEff >= n) { lines.push(`${n}G = ∞`); }
+  const show = i => lines.push(`${String(i).padStart(4)}G = ${ptStr(pts[i])}` + (i === kEff ? "   <- k*G = TOY PUBLIC KEY" : ""));
+  if (kEff >= n) { lines.push(`${n}G = infinity`); }
   else if (S.mode === "naive" || kEff <= 64) {
     for (let i = 1; i <= kEff; i++) show(i);
   } else {
     for (let i = 1; i <= 12; i++) show(i);
-    lines.push("   …");
+    lines.push("   ...");
     for (let i = kEff - 3; i <= kEff; i++) show(i);
   }
   if (S.mode === "dbl" && S.steps.length) {
-    lines.push("", "Passi double-and-add per k = " + kEff + " (binario " + kEff.toString(2) + "):");
-    for (const s of S.steps) lines.push(`  ${s.type === "dbl" ? "raddoppio" : "somma    "}: ${s.mult}G = ${ptStr(s.R)}`);
+    lines.push("", "Double-and-add steps for k = " + kEff + " (binary " + kEff.toString(2) + "):");
+    for (const s of S.steps) lines.push(`  ${s.type === "dbl" ? "double" : "add   "}: ${s.mult}G = ${ptStr(s.R)}`);
   }
   $("list").textContent = lines.join("\n");
 }
 
 // ============================================================
-// DISEGNO (canvas) + ANIMAZIONE
+// DRAWING (canvas) + ANIMATION
 // ============================================================
 function drawMain() {
   const cv = $("cv"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height, M = 38, p = S.p;
@@ -368,7 +384,7 @@ function drawMain() {
   const X = x => M + x * cell, Y = y => H - M - y * cell;
   ctx.clearRect(0, 0, W, H);
 
-  // griglia e assi
+  // grid and axes
   ctx.strokeStyle = "#1d2740"; ctx.lineWidth = 1; ctx.fillStyle = "#8d98b0"; ctx.font = "10px sans-serif";
   const tick = p <= 40 ? 1 : Math.ceil(p / 12);
   ctx.textAlign = "center";
@@ -380,7 +396,7 @@ function drawMain() {
   }
   ctx.fillText("x", W - 12, H - M + 16); ctx.fillText("y", M - 24, 14);
 
-  // punti della curva
+  // curve points
   const r = Math.max(1.4, Math.min(5, cell * 0.26));
   ctx.fillStyle = "#4a5878";
   for (const P of S.curve) { ctx.beginPath(); ctx.arc(X(P.x), Y(P.y), r, 0, 7); ctx.fill(); }
@@ -402,12 +418,12 @@ function drawMain() {
     ctx.lineTo(hx - 9 * Math.cos(ang + 0.4), hy - 9 * Math.sin(ang + 0.4)); ctx.closePath(); ctx.fill();
   };
 
-  // multipli già calcolati
+  // multiples already computed
   const done = S.steps.slice(0, S.idx);
   for (const s of done) if (s.R) { dot(s.R, "#ffb454", r + 1.5); label(s.R, s.mult + "G", "#ffb454", false); }
   // G
   dot(S.G, "#4da3ff", r + 2.5); label(S.G, "G", "#4da3ff", true);
-  // passo corrente
+  // current step
   if (done.length) {
     const s = done[done.length - 1];
     if (s.A) { ring(s.A, "#43d19e", r + 6); }
@@ -415,7 +431,7 @@ function drawMain() {
     if (s.R) { arrow(s.A, s.R, "#43d19e"); if (s.type === "add") arrow(s.B, s.R, "#b58cff"); dot(s.R, "#ff6b6b", r + 3.5); label(s.R, s.mult + "G", "#ff6b6b", true); }
     if (s.A) label(s.A, s.mA + "G", "#43d19e", true);
   }
-  // chiave pubblica finale
+  // final public key
   if (S.idx === S.steps.length && S.Q && S.steps.length) {
     ctx.strokeStyle = "#43d19e"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(S.Q.x), Y(S.Q.y), r + 9, 0, 7); ctx.stroke();
     ctx.fillStyle = "#43d19e"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "left";
@@ -426,18 +442,18 @@ function drawMain() {
 function describeStep(s, i) {
   const p = S.p;
   const op = s.type === "dbl"
-    ? `<b>raddoppio</b> ${s.mA}G + ${s.mA}G`
-    : `<b>somma</b> ${s.mA}G + ${s.mB}G`;
-  let html = `Passo ${i}/${S.steps.length} · ${op} → <b>${s.mult}G</b><br>`;
+    ? `<b>doubling</b> ${s.mA}G + ${s.mA}G`
+    : `<b>addition</b> ${s.mA}G + ${s.mB}G`;
+  let html = `Step ${i}/${S.steps.length} &middot; ${op} &rarr; <b>${s.mult}G</b><br>`;
   html += `A = ${ptStr(s.A)}, B = ${ptStr(s.B)}<br>`;
-  if (!s.R) return html + "risultato: punto all’infinito ∞";
+  if (!s.R) return html + "result: point at infinity";
   if (s.type === "dbl")
-    html += `λ = 3x²/(2y) = 3·${s.A.x}² / (2·${s.A.y}) = <b>${s.lam}</b> (mod ${p})<br>`;
+    html += `&lambda; = 3x&sup2;/(2y) = 3&middot;${s.A.x}&sup2; / (2&middot;${s.A.y}) = <b>${s.lam}</b> (mod ${p})<br>`;
   else
-    html += `λ = (y₂−y₁)/(x₂−x₁) = (${s.B.y}−${s.A.y})/(${s.B.x}−${s.A.x}) = <b>${s.lam}</b> (mod ${p})<br>`;
-  html += `x₃ = λ² − x₁ − x₂ = ${s.R.x}<br>y₃ = λ(x₁ − x₃) − y₁ = ${s.R.y}<br>`;
-  html += `<span class="good">⇒ ${s.mult}G = ${ptStr(s.R)}</span>`;
-  if (S.idx === S.steps.length) html += `<br><br><b class="good">FINE: TOY PUBLIC KEY Q = ${S.kEff}·G = ${ptStr(S.Q)}</b>`;
+    html += `&lambda; = (y&#8322;-y&#8321;)/(x&#8322;-x&#8321;) = (${s.B.y}-${s.A.y})/(${s.B.x}-${s.A.x}) = <b>${s.lam}</b> (mod ${p})<br>`;
+  html += `x&#8323; = &lambda;&sup2; - x&#8321; - x&#8322; = ${s.R.x}<br>y&#8323; = &lambda;(x&#8321; - x&#8323;) - y&#8321; = ${s.R.y}<br>`;
+  html += `<span class="good">&rArr; ${s.mult}G = ${ptStr(s.R)}</span>`;
+  if (S.idx === S.steps.length) html += `<br><br><b class="good">DONE: TOY PUBLIC KEY Q = ${S.kEff}&middot;G = ${ptStr(S.Q)}</b>`;
   return html;
 }
 
@@ -451,15 +467,15 @@ function step() {
 function play() {
   stop();
   if (S.idx >= S.steps.length) { S.idx = 0; drawMain(); }
-  $("btnPlay").textContent = "⏸ Pausa";
+  $("btnPlay").innerHTML = "&#10074;&#10074; Pause";
   const tick = () => {
     if (step()) S.timer = setTimeout(tick, +$("speed").value);
     else stop();
   };
   S.timer = setTimeout(tick, 300);
 }
-function stop() { clearTimeout(S.timer); S.timer = null; $("btnPlay").textContent = "▶ Avvia"; }
-function resetAnim() { stop(); S.idx = 0; $("stepinfo").innerHTML = "Premi «Avvia» o «Passo»."; drawMain(); }
+function stop() { clearTimeout(S.timer); S.timer = null; $("btnPlay").innerHTML = "&#9654; Play"; }
+function resetAnim() { stop(); S.idx = 0; $("stepinfo").innerHTML = "Press \"Play\" or \"Step\"."; drawMain(); }
 
 function brute() {
   if (!S.Q) return;
@@ -467,11 +483,11 @@ function brute() {
   let R = S.G, i = 1;
   while (!same(R, S.Q) && i < S.sg.n) { R = addPts(R, S.G, S.p).R; i++; }
   const dt = (performance.now() - t0).toFixed(2);
-  $("bruteout").innerHTML = `Trovato k = <b>${i}</b> dopo ${i} somme (${dt} ms). Con n ≈ ${S.sg.n} è banale; per secp256k1 (n ≈ 2²⁵⁶ ≈ 1.2·10⁷⁷) servirebbero ~√n ≈ 10³⁸ operazioni anche con gli algoritmi migliori.`;
+  $("bruteout").innerHTML = `Found k = <b>${i}</b> after ${i} additions (${dt} ms). With n = ${S.sg.n} this is trivial; for secp256k1 (n &asymp; 2<sup>256</sup> &asymp; 1.2&middot;10<sup>77</sup>) about &radic;n &asymp; 10<sup>38</sup> operations would be needed even with the best generic algorithms.`;
 }
 
 // ============================================================
-// GRAFICI
+// CHARTS
 // ============================================================
 function barChart(cv, values, opt = {}) {
   const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, L = 40, B = 22, T = 10, R = 8;
@@ -516,7 +532,7 @@ function scatter(cv, xs, ys, xmax, ymax, color) {
 }
 
 // ============================================================
-// STATISTICHE
+// STATISTICS
 // ============================================================
 function computeStats() {
   const { p, sg } = S, n = sg.n, pts = sg.pts;
@@ -524,15 +540,15 @@ function computeStats() {
   const xs = [], ys = [], ks = [];
   for (let k = 1; k < n; k++) { xs.push(pts[k].x); ys.push(pts[k].y); ks.push(k); }
   const N = xs.length;
-  if (N < 4) { $("metrics").innerHTML = "<p class='warnc'>Sottogruppo troppo piccolo per le statistiche.</p>"; return; }
+  if (N < 4) { $("metrics").innerHTML = "<p class='warnc'>Subgroup too small for statistics.</p>"; return; }
 
-  // frequenze
+  // frequencies
   const cx = new Array(p).fill(0), cy = new Array(p).fill(0);
   for (let i = 0; i < N; i++) { cx[xs[i]]++; cy[ys[i]]++; }
   const usedX = cx.filter(c => c > 0), usedY = cy.filter(c => c > 0);
   const Hx = entropy(cx, N), Hy = entropy(cy, N);
 
-  // istogrammi a bin
+  // binned histograms
   const bins = Math.min(p, 64);
   const hx = new Array(bins).fill(0), hy = new Array(bins).fill(0);
   for (let i = 0; i < N; i++) { hx[Math.floor(xs[i] * bins / p)]++; hy[Math.floor(ys[i] * bins / p)]++; }
@@ -540,7 +556,7 @@ function computeStats() {
   barChart($("hx"), hx, { int: true, xlabels: xl, ref: N / bins });
   barChart($("hy"), hy, { int: true, xlabels: xl, ref: N / bins });
 
-  // bit
+  // bits
   const bx = new Array(bw).fill(0), by = new Array(bw).fill(0);
   for (let i = 0; i < N; i++) for (let b = 0; b < bw; b++) { bx[b] += (xs[i] >> b) & 1; by[b] += (ys[i] >> b) & 1; }
   const bitFr = [...bx, ...by].map(v => v / N);
@@ -548,7 +564,7 @@ function computeStats() {
   barChart($("hb"), bitFr, { max: 1, ref: 0.5, colors, xlabels: [[0, "x:b0"], [bw - 1, "x:b" + (bw - 1)], [bw, "y:b0"], [2 * bw - 1, "y:b" + (bw - 1)]] });
   const bias = Math.max(...bitFr.map(f => Math.abs(f - 0.5)));
 
-  // avalanche su k -> (x,y)
+  // avalanche on k -> (x,y)
   const kb = bitlen(n - 1), m = 2 * bw;
   const enc = k => (pts[k].x << bw) | pts[k].y;
   const sumCurve = new Array(kb).fill(0), cntCurve = new Array(kb).fill(0);
@@ -566,42 +582,41 @@ function computeStats() {
   const avC = sumCurve.map((s, i) => cntCurve[i] ? s / cntCurve[i] : 0);
   const avH = sumHash.map((s, i) => cntCurve[i] ? s / cntCurve[i] : 0);
   const meanC = avC.reduce((a, b) => a + b, 0) / kb, meanH = avH.reduce((a, b) => a + b, 0) / kb;
-  barChart($("av"), avC, { max: 1, ref: 0.5, xlabels: [[0, "bit 0 di k"], [kb - 1, "bit " + (kb - 1)]] });
+  barChart($("av"), avC, { max: 1, ref: 0.5, xlabels: [[0, "bit 0 of k"], [kb - 1, "bit " + (kb - 1)]] });
 
-  // correlazioni e simmetria
+  // correlations and symmetry
   const rKX = pearson(ks, xs), rKY = pearson(ks, ys);
   const rLag = pearson(xs.slice(0, -1), xs.slice(1));
   let sym = 0;
   for (let k = 1; k < n; k++) { const a = pts[k], b = pts[n - k]; if (b && a.x === b.x && mod(a.y + b.y, p) === 0) sym++; }
-  // scatter
   scatter($("sx"), ks, xs, n, p, "#4da3ff");
   scatter($("sy"), ks, ys, n, p, "#b58cff");
 
-  // Metriche: tabella
+  // metrics table
   const row = (a, b, c = "") => `<tr><td>${a}</td><td>${b}</td><td class="sub">${c}</td></tr>`;
   $("metrics").innerHTML = `<table>
-    <tr><th>Proprietà</th><th>Valore misurato</th><th>Commento</th></tr>
-    ${row("Ordine n del sottogruppo di G", `<b>${n}</b>`, `punti kG per k=1…${n - 1}: ${N}`)}
-    ${row("Valori di x usati", `${usedX.length} su ${p}`, `frequenza min/max: ${Math.min(...usedX)} / ${Math.max(...usedX)} (di solito 2: ±y)`)}
-    ${row("Valori di y usati", `${usedY.length} su ${p}`, `frequenza min/max: ${Math.min(...usedY)} / ${Math.max(...usedY)}`)}
-    ${row("Entropia di Shannon H(x), H(y)", `${Hx.toFixed(3)}, ${Hy.toFixed(3)} bit`, `massimo teorico log₂p = ${Math.log2(p).toFixed(3)} bit`)}
-    ${row("Bias massimo dei bit", bias.toFixed(3), "|freq(bit=1) − 0.5|: i bit alti sono sbilanciati se p non è potenza di 2")}
-    ${row("Correlazione di Pearson r(k, x)", rKX.toFixed(3), "vicina a 0 = nessuna dipendenza lineare")}
-    ${row("Correlazione di Pearson r(k, y)", rKY.toFixed(3), "")}
-    ${row("Autocorrelazione lag-1 di x(kG)", rLag.toFixed(3), "x(kG) vs x((k+1)G)")}
-    ${row("Simmetria x((n−k)G) = x(kG), y opposta", `${sym} / ${n - 1} valori di k`, "struttura algebrica: un hash NON dovrebbe averla")}
-    ${row("Avalanche medio su kG", `<b>${meanC.toFixed(3)}</b> (ideale 0.5)`, `bit d’uscita = ${m} (x,y su ${bw} bit)`)}
-    ${row("Avalanche medio hash di riferimento (fmix32)", `<b>${meanH.toFixed(3)}</b>`, "funzione di mixing di MurmurHash3 troncata allo stesso numero di bit")}
+    <tr><th>Property</th><th>Measured value</th><th>Comment</th></tr>
+    ${row("Order n of the subgroup generated by G", `<b>${n}</b>`, `points kG for k=1...${n - 1}: ${N}`)}
+    ${row("Distinct x values used", `${usedX.length} of ${p}`, `frequency min/max: ${Math.min(...usedX)} / ${Math.max(...usedX)} (usually 2: +y and -y)`)}
+    ${row("Distinct y values used", `${usedY.length} of ${p}`, `frequency min/max: ${Math.min(...usedY)} / ${Math.max(...usedY)}`)}
+    ${row("Shannon entropy H(x), H(y)", `${Hx.toFixed(3)}, ${Hy.toFixed(3)} bit`, `theoretical maximum log2(p) = ${Math.log2(p).toFixed(3)} bit`)}
+    ${row("Maximum bit bias", bias.toFixed(3), "|freq(bit=1) - 0.5|: top bits are unbalanced when p is not a power of 2")}
+    ${row("Pearson correlation r(k, x)", rKX.toFixed(3), "close to 0 = no linear dependence")}
+    ${row("Pearson correlation r(k, y)", rKY.toFixed(3), "")}
+    ${row("Lag-1 autocorrelation of x(kG)", rLag.toFixed(3), "x(kG) vs x((k+1)G)")}
+    ${row("Symmetry x((n-k)G) = x(kG), y opposite", `${sym} / ${n - 1} values of k`, "algebraic structure: a hash should NOT have it")}
+    ${row("Average avalanche on kG", `<b>${meanC.toFixed(3)}</b> (ideal 0.5)`, `output bits = ${m} (x,y on ${bw} bits each)`)}
+    ${row("Average avalanche of reference hash (fmix32)", `<b>${meanH.toFixed(3)}</b>`, "MurmurHash3 mixing function truncated to the same number of bits")}
   </table>`;
 }
 
 // ============================================================
-// EVENTI
+// EVENTS
 // ============================================================
 function findBase(p) {
   for (const P of allCurvePoints(p)) if (P.x > 0 && P.y > 0) {
     const n = subgroup(P, p).n;
-    if (n > 0.8 * (p + 1)) return P;    // preferisci un punto che genera (quasi) tutto il gruppo
+    if (n > 0.8 * (p + 1)) return P;    // prefer a point that generates (almost) the whole group
   }
   return allCurvePoints(p)[0];
 }
