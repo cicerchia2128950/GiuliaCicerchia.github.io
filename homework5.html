@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homework 4 - Welford's recurrence, sampling mean and variance</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--ink:#e6eaf2;--mute:#8d98b0;--acc:#4da3ff;--ok:#43d19e;--warn:#ffb454;--bad:#ff6b6b;--vio:#b58cff;--line:#2a3550}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Segoe UI",Roboto,sans-serif}
+header,main{max-width:1180px;margin:0 auto;padding:16px 20px}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 10px;color:var(--acc)}h3{font-size:1rem;margin:16px 0 6px}
+.sub{color:var(--mute);margin:0}a{color:var(--acc)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0;overflow-x:auto}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:10px 0}
+label{display:flex;flex-direction:column;font-size:.8rem;color:var(--mute);gap:3px}
+input,select{background:#0f1626;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 8px;font:inherit;width:100px}
+select{width:auto}
+button{background:var(--acc);color:#04101f;border:0;border-radius:6px;padding:7px 14px;font:inherit;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.12)}button:disabled{opacity:.5;cursor:wait}
+.err{color:var(--bad);min-height:1.2em}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0c111d;padding:1px 5px;border-radius:4px;font-size:.88em}
+pre{background:#0c111d;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:8px 0;overflow:auto;font-size:.85rem}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+td,th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+th{color:var(--mute);font-weight:600}
+ul{margin:6px 0 6px 20px;padding:0}li{margin:4px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-top:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:10px}
+.card{background:#0c111d;border:1px solid var(--line);border-radius:8px;padding:8px}
+.card h3{margin:2px 4px 6px;font-size:.84rem;color:var(--mute);font-weight:600}
+canvas{width:100%;height:auto;display:block}
+.small{font-size:.85rem}.eq{margin:8px 0 8px 14px}
+.back-link{display:inline-block;margin:18px 0 0 18px;padding:6px 10px;color:#e6eaf2;text-decoration:none;font-weight:600;border-radius:6px;background:rgba(255,255,255,.02)}
+.back-link:hover{text-decoration:underline;background:rgba(255,255,255,.04)}
+</style>
+</head>
+<body>
+<a class="back-link" href="index.html">&larr; Statistics Homework Blog</a>
+<header>
+  <h1>Homework 4 - Welford's recurrence, sampling mean and variance</h1>
+</header>
+<main>
+
+<section>
+  <h2>Exercise 1. Welford's recurrence formulas</h2>
+  <p>Let x<sub>1</sub>, ..., x<sub>k</sub> be the data, M<sub>k</sub> their mean and SS<sub>k</sub> = &Sigma; (x<sub>i</sub> - M<sub>k</sub>)&sup2; the sum of squares.</p>
+  <h3>Mean (Knuth)</h3>
+  <p>From k M<sub>k</sub> = (k-1) M<sub>k-1</sub> + x<sub>k</sub> we get</p>
+  <div class="eq">M<sub>k</sub> = M<sub>k-1</sub> + (x<sub>k</sub> - M<sub>k-1</sub>)/k</div>
+  <p>Let d = M<sub>k</sub> - M<sub>k-1</sub>. Then two useful identities follow:</p>
+  <div class="eq">x<sub>k</sub> - M<sub>k-1</sub> = k d &nbsp;&nbsp;&nbsp; and &nbsp;&nbsp;&nbsp; x<sub>k</sub> - M<sub>k</sub> = (x<sub>k</sub> - M<sub>k-1</sub>) - d = (k-1) d</div>
+  <h3>Sum of squares (Welford)</h3>
+  <p>Since SS<sub>k</sub> = &Sigma; x<sub>i</sub>&sup2; - k M<sub>k</sub>&sup2;, the difference between two steps is</p>
+  <div class="eq">SS<sub>k</sub> - SS<sub>k-1</sub> = x<sub>k</sub>&sup2; - k M<sub>k</sub>&sup2; + (k-1) M<sub>k-1</sub>&sup2;</div>
+  <p>Using k M<sub>k</sub> = (k-1) M<sub>k-1</sub> + x<sub>k</sub>, the term k M<sub>k</sub>&sup2; = M<sub>k</sub>((k-1) M<sub>k-1</sub> + x<sub>k</sub>). Substituting:</p>
+  <div class="eq">SS<sub>k</sub> - SS<sub>k-1</sub> = x<sub>k</sub>(x<sub>k</sub> - M<sub>k</sub>) - (k-1) M<sub>k-1</sub> (M<sub>k</sub> - M<sub>k-1</sub>)</div>
+  <p>By the identity above, (k-1)(M<sub>k</sub> - M<sub>k-1</sub>) = x<sub>k</sub> - M<sub>k</sub>, so</p>
+  <div class="eq">SS<sub>k</sub> - SS<sub>k-1</sub> = x<sub>k</sub>(x<sub>k</sub> - M<sub>k</sub>) - M<sub>k-1</sub>(x<sub>k</sub> - M<sub>k</sub>) = (x<sub>k</sub> - M<sub>k-1</sub>)(x<sub>k</sub> - M<sub>k</sub>)</div>
+  <p>Final recurrences, starting from M<sub>0</sub> = 0 and SS<sub>0</sub> = 0:</p>
+  <div class="eq">M<sub>k</sub> = M<sub>k-1</sub> + (x<sub>k</sub> - M<sub>k-1</sub>)/k<br>SS<sub>k</sub> = SS<sub>k-1</sub> + (x<sub>k</sub> - M<sub>k-1</sub>)(x<sub>k</sub> - M<sub>k</sub>)</div>
+  <p>The variance follows from SS<sub>k</sub>: the sample variance is s&sup2;<sub>k</sub> = SS<sub>k</sub>/(k-1) for k &ge; 2 (the version with k at the denominator is SS<sub>k</sub>/k). The product (x<sub>k</sub> - M<sub>k-1</sub>)(x<sub>k</sub> - M<sub>k</sub>) is never negative, so SS can only increase, and no subtraction of two large numbers is needed, which is the problem of the formula &Sigma;x&sup2; - kM&sup2;.</p>
+  <h3>Code</h3>
+<pre>mean, SS = 0.0, 0.0
+for k, x in enumerate(data, start=1):
+    delta = x - mean          # x_k - M_{k-1}
+    mean += delta / k         # M_k
+    SS   += delta * (x - mean)  # (x_k - M_{k-1})(x_k - M_k)
+variance = SS / (k - 1)</pre>
+  <p class="small sub">The three lines in the loop are the whole algorithm. The JavaScript version used in the simulation below is the same.</p>
+</section>
+
+<section>
+  <h2>Exercise 2. Sampling mean and variance</h2>
+  <p>Each penetration attempt gets a score in {0, 1, ..., 10} drawn from a fixed distribution with mean &mu; and variance &sigma;&sup2;. There are m hackers and each one attacks n systems, so each hacker has a trajectory of n scores. For every hacker I compute the sample mean and the sample variance (with n-1) using Welford's recurrences, then I average over the m hackers and compare with &mu; and &sigma;&sup2;. I also compute SS/n to see the difference with n-1.</p>
+  <div class="controls">
+    <label>Distribution<select id="dist"><option value="bin">Binomial(10, q)</option><option value="uni">Uniform on 0..10</option></select></label>
+    <label>q (binomial)<input id="q" type="number" step="0.05" min="0.05" max="0.95" value="0.3"></label>
+    <label>m (hackers)<input id="m" type="number" min="20" max="5000" value="1000"></label>
+    <label>Seed<input id="seed" type="number" value="7"></label>
+    <button id="btn">Run</button>
+  </div>
+  <div class="err" id="err"></div>
+  <div class="small sub" id="info"></div>
+  <div id="tab" style="margin-top:10px"></div>
+  <p class="small sub" id="chk"></p>
+  <div class="grid">
+    <div class="card"><h3>Standard deviation of the m sample means (orange: &sigma;/&radic;n)</h3><canvas id="c1" width="520" height="260"></canvas></div>
+    <div class="card"><h3>Standard deviation of the m sample variances (orange: theory)</h3><canvas id="c2" width="520" height="260"></canvas></div>
+  </div>
+  <h3>Sample means of the m hackers (same horizontal range in every panel)</h3>
+  <div class="grid4" id="hm"></div>
+  <h3>Sample variances of the m hackers (same horizontal range in every panel)</h3>
+  <div class="grid4" id="hv"></div>
+</section>
+
+<section>
+  <h2>Conclusions</h2>
+  <p><b>Comparison with &mu; and &sigma;&sup2;.</b> The average of the sample means is very close to &mu; for every n, and the average of the sample variances (with n-1) is close to &sigma;&sup2;. This is what we expect from unbiasedness: E[sample mean] = &mu; and E[s&sup2;] = &sigma;&sup2;. If SS is divided by n instead, the average is &sigma;&sup2;(n-1)/n, which is visibly too small for small n (for n = 5 it is 80% of &sigma;&sup2;) and the bias goes away when n grows.</p>
+  <p><b>Why it is useful in inferential statistics.</b> In practice &mu; and &sigma;&sup2; are not known and we have only one sample. Unbiasedness says that the sample mean and the sample variance do not systematically over or underestimate them, so we can use them as estimators. The other results say how reliable a single estimate is: the spread of the sample means is &sigma;/&radic;n, which is what confidence intervals and tests are based on, and it can be estimated by s/&radic;n.</p>
+  <p><b>Effect of n.</b> When each hacker attacks more systems, the sample means and the sample variances are less spread: the standard deviation of the sample mean decreases like 1/&radic;n and the one of the sample variance also decreases about as 1/&radic;n. The histograms become narrower around &mu; and &sigma;&sup2;, so a single hacker's sample is already a good estimate (consistency). The standard deviation of the variance is larger relative to its value than that of the mean, so more data is needed to estimate the variance well. Since the average over m hackers is already close to the target for small n, m only reduces the noise of the comparison, while n reduces the variability of each single estimate.</p>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const fmt=v=>{const a=Math.abs(v);return a===0?"0":(a>=10000||a<0.01)?v.toExponential(0):(+v.toPrecision(3)).toString()};
+function plot(cv,o){
+  const c=cv.getContext("2d"),W=cv.width,H=cv.height,L=54,B=24,T=10,R=10,pw=W-L-R,ph=H-B-T;
+  c.clearRect(0,0,W,H);
+  let ymax=0;for(const s of o.series)for(const y of s.y)ymax=Math.max(ymax,y);for(const y of o.ref.y)ymax=Math.max(ymax,y);ymax*=1.1;
+  const x0=o.xmin,x1=o.xmax,X=x=>L+pw*(Math.log(x)-Math.log(x0))/(Math.log(x1)-Math.log(x0)),Y=y=>T+ph*(1-y/ymax);
+  c.strokeStyle="#2a3550";c.fillStyle="#8d98b0";c.font="10px sans-serif";c.textAlign="right";
+  for(let t=0;t<=4;t++){const v=ymax*t/4,y=Y(v);c.beginPath();c.moveTo(L,y);c.lineTo(W-R,y);c.stroke();c.fillText(fmt(v),L-4,y+3);}
+  c.textAlign="center";
+  for(let e=Math.ceil(Math.log10(x0));10**e<=x1;e++){const x=X(10**e);c.beginPath();c.moveTo(x,T);c.lineTo(x,H-B);c.stroke();c.fillText("n=10^"+e,x,H-8);}
+  c.strokeStyle="#ffb454";c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();o.ref.x.forEach((x,i)=>{i?c.lineTo(X(x),Y(o.ref.y[i])):c.moveTo(X(x),Y(o.ref.y[i]))});c.stroke();c.setLineDash([]);
+  o.series.forEach(s=>{c.strokeStyle=s.color;c.fillStyle=s.color;c.lineWidth=2;c.beginPath();s.x.forEach((x,i)=>{i?c.lineTo(X(x),Y(s.y[i])):c.moveTo(X(x),Y(s.y[i]))});c.stroke();s.x.forEach((x,i)=>{c.beginPath();c.arc(X(x),Y(s.y[i]),3,0,7);c.fill();});});
+}
+function hist(cv,vals,lo,hi,bins){
+  const c=cv.getContext("2d"),W=cv.width,H=cv.height,L=40,B=22,T=8,R=8,pw=W-L-R,ph=H-B-T;
+  c.clearRect(0,0,W,H);
+  const cnt=new Array(bins).fill(0),bw=(hi-lo)/bins;
+  for(const v of vals){const b=Math.floor((v-lo)/bw);if(b>=0&&b<bins)cnt[b]++;}
+  const dens=cnt.map(k=>k/vals.length/bw),mx=Math.max(...dens)*1.1;
+  c.strokeStyle="#2a3550";c.fillStyle="#8d98b0";c.font="10px sans-serif";c.textAlign="right";
+  for(let t=0;t<=3;t++){const y=T+ph*(1-t/3);c.beginPath();c.moveTo(L,y);c.lineTo(W-R,y);c.stroke();c.fillText(fmt(mx*t/3),L-4,y+3);}
+  c.fillStyle="#4da3ff";dens.forEach((d,i)=>{const h=ph*d/mx;c.fillRect(L+i*pw/bins+0.5,T+ph-h,Math.max(1,pw/bins-1),h);});
+  c.fillStyle="#8d98b0";c.textAlign="center";
+  for(let t=0;t<=4;t++)c.fillText(fmt(lo+(hi-lo)*t/4),L+pw*t/4,H-7);
+}
+const tick=()=>new Promise(r=>setTimeout(r,0));
+const sdv=a=>{let m=0;for(const v of a)m+=v;m/=a.length;let s=0;for(const v of a)s+=(v-m)**2;return Math.sqrt(s/(a.length-1))};
+const avg=a=>{let s=0;for(const v of a)s+=v;return s/a.length};
+
+async function run(){
+  const btn=$("btn");btn.disabled=true;$("err").textContent="";await tick();
+  try{
+    const m=parseInt($("m").value),q=parseFloat($("q").value),seed=parseInt($("seed").value)||1,u=rng(seed);
+    if(!(m>=20&&m<=5000))throw new Error("m must be between 20 and 5000.");
+    const bin=$("dist").value==="bin";
+    if(bin&&!(q>0&&q<1))throw new Error("q must be in (0,1).");
+    // pmf on 0..10
+    const pmf=[];let cb=1;
+    for(let k=0;k<=10;k++){pmf.push(bin?cb*q**k*(1-q)**(10-k):1/11);cb=cb*(10-k)/(k+1);}
+    const cdf=[];let a=0;for(const v of pmf){a+=v;cdf.push(a);}
+    const draw=()=>{const r=u();for(let k=0;k<10;k++)if(r<cdf[k])return k;return 10;};
+    let mu=0;pmf.forEach((p,k)=>mu+=k*p);
+    let s2=0,m4=0;pmf.forEach((p,k)=>{s2+=(k-mu)**2*p;m4+=(k-mu)**4*p;});
+    $("info").innerHTML=`${bin?"Binomial(10, "+q+")":"Uniform on {0,...,10}"}: &mu; = ${mu.toFixed(3)}, &sigma;&sup2; = ${s2.toFixed(3)}. m = ${m} hackers.`;
+    const ns=[5,10,20,50,100,200,500,1000],res=[];let chk="";
+    for(const n of ns){
+      const means=[],vars=[],vb=[];
+      for(let j=0;j<m;j++){
+        let mean=0,SS=0;const keep=(n===100&&j===0)?[]:null;
+        for(let k=1;k<=n;k++){
+          const x=draw();if(keep)keep.push(x);
+          const delta=x-mean;mean+=delta/k;SS+=delta*(x-mean);
+        }
+        means.push(mean);vars.push(SS/(n-1));vb.push(SS/n);
+        if(keep){const m2=avg(keep);let v2=0;for(const x of keep)v2+=(x-m2)**2;v2/=n-1;
+          chk=`Check on one trajectory (n = 100): Welford and the direct two-pass formula differ by ${Math.abs(mean-m2).toExponential(1)} for the mean and ${Math.abs(SS/(n-1)-v2).toExponential(1)} for the variance.`;}
+      }
+      res.push({n,means,vars,am:avg(means),av:avg(vars),ab:avg(vb),sm:sdv(means),sv:sdv(vars),
+        tm:Math.sqrt(s2/n),tv:Math.sqrt(Math.max(0,(m4-s2*s2*(n-3)/(n-1))/n))});
+      await tick();
+    }
+    $("chk").textContent=chk;
+    const f=(x,d=3)=>x.toFixed(d);
+    $("tab").innerHTML=`<table><tr><th>n</th><th>avg of sample means (&mu; = ${f(mu)})</th><th>avg of sample variances, n-1 (&sigma;&sup2; = ${f(s2)})</th><th>avg of SS/n</th><th>sd of sample means (theory &sigma;/&radic;n)</th><th>sd of sample variances (theory)</th></tr>`+
+      res.map(r=>`<tr><td>${r.n}</td><td>${f(r.am)}</td><td>${f(r.av)}</td><td>${f(r.ab)}</td><td>${f(r.sm,4)} (${f(r.tm,4)})</td><td>${f(r.sv,4)} (${f(r.tv,4)})</td></tr>`).join("")+`</table>`;
+    const x=res.map(r=>r.n);
+    plot($("c1"),{xmin:5,xmax:1000,series:[{x,y:res.map(r=>r.sm),color:"#4da3ff"}],ref:{x,y:res.map(r=>r.tm)}});
+    plot($("c2"),{xmin:5,xmax:1000,series:[{x,y:res.map(r=>r.sv),color:"#b58cff"}],ref:{x,y:res.map(r=>r.tv)}});
+    const pick=[5,50,1000].map(n=>res.find(r=>r.n===n));
+    let hm="",hv="";pick.forEach((r,i)=>{const t=`<div class="card"><h3>n = ${r.n}</h3><canvas id="@${i}" width="300" height="190"></canvas></div>`;hm+=t.replace("@","hm");hv+=t.replace("@","hv");});
+    $("hm").innerHTML=hm;$("hv").innerHTML=hv;
+    const r0=res[0],lm=[mu-4*r0.tm,mu+4*r0.tm],lv=[Math.max(0,s2-4*r0.tv),s2+4*r0.tv];
+    pick.forEach((r,i)=>{hist($("hm"+i),r.means,lm[0],lm[1],40);hist($("hv"+i),r.vars,lv[0],lv[1],40);});
+  }catch(e){$("err").textContent=e.message;}
+  btn.disabled=false;
+}
+$("btn").onclick=run;run();
+</script>
+</body>
+</html>
